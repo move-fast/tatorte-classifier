@@ -1,19 +1,17 @@
 """
 Usage:
-    from get_prediction_production import stemmed_words, get_predictions
+    from get_prediction import stemmed_words, load_model, get_predictions
     # stemmed words must be imported for loading the model
 
-    preds = get_predictions(descriptions)
-    pred_classes = preds[0]
-    pred_accuracy_0 = preds[1]
-    pred_accuracy_1 = preds[2]
-    pred_accuracy_2 = preds[3]
+    model = load_model()
+
+    pred_idx, pred_probs = get_predictions(descriptions, model, 3)
 
 Versions:
     sklearn: 0.20.2
     numpy: 1.16.1
     python: 3.6.8
-    nltk
+    nltk: 3.4
 
 """
 
@@ -32,9 +30,9 @@ from sklearn.externals import joblib
 # ---------
 MIN_DESC_LEN: int = 40  # The minimum length of the description in characters
 MIN_PREDICTING_PROBA = (
-    0.6
+    0.5
 )  # the minimum probability for a class, to not be classified as not classified
-MODEL_PATH = "/home/peer/Code/AI/praktikum/production/model.joblib"
+MODEL_PATH = "/home/peer/Code/AI/praktikum/production_api/model.joblib"
 
 # --------------------------------
 # for loading the model via joblib
@@ -52,17 +50,14 @@ def stemmed_words(doc: np.str_) -> Generator[Any, None, None]:
     return (stemmer.stem(w) for w in analyzer(doc))
 
 
-def _load_model(path: str):
+def load_model(path: str = None):
     """Loads the model
-
-    Arguments:
-        path {str} -- The path to the model
 
     Returns:
         The loaded model
     """
 
-    model = joblib.load(path)
+    model = joblib.load(path or MODEL_PATH)
     return model
 
 
@@ -107,19 +102,13 @@ def _preprocess_data(desc: np.ndarray) -> np.ndarray:
     )
     desc = remove_links(remove_telephones(remove_emails(desc)))
 
-    # ----------------------------------------
-    # Make too short descriptions unclassified
-    # ----------------------------------------
-    str_len = np.vectorize(len)
-    desc[np.where(str_len(desc) < MIN_DESC_LEN)] = "Not classified"
-
     return desc
 
 
 # ------------------
 # Predicting Classes
 # ------------------
-def _predict_classes(desc: np.ndarray, model: Pipeline) -> np.ndarray:
+def _predict_classes(desc: np.ndarray, model: Pipeline, n_preds: int) -> np.ndarray:
     """predict the classes of the desc
 
     Arguments:
@@ -139,13 +128,15 @@ def _predict_classes(desc: np.ndarray, model: Pipeline) -> np.ndarray:
         2 -- Drogen, Mord - Auch Alkohol wird hierzu klassifiziert
         3 -- Unclassified
     """
-    pred = model.predict_proba(desc)
-    pred_idx = np.argmax(pred, 1)
-    pred_idx[np.where(pred[np.arange(len(pred_idx)), pred_idx] < MIN_PREDICTING_PROBA)] = 3
-    pred_idx[np.where(desc == "Not classified")] = 3
-    pred = np.concatenate((pred_idx.reshape((1, -1)), pred.T))
+    if len(desc[0]) < MIN_DESC_LEN:
+        return [], []
 
-    return pred
+    pred = model.predict_proba(desc)[0]
+    pred_idx = np.argsort(-pred)[:n_preds]
+    if pred[pred_idx[0]] < MIN_PREDICTING_PROBA:
+        return [], []
+    pred = pred[pred_idx]
+    return pred_idx.tolist(), pred.tolist()
 
 
 # ----------------------
@@ -153,7 +144,7 @@ def _predict_classes(desc: np.ndarray, model: Pipeline) -> np.ndarray:
 # ----------------------
 
 
-def get_predictions(desc: np.ndarray) -> np.ndarray:
+def get_predictions(desc: np.ndarray, model, n_classes: int) -> np.ndarray:
     """Get the predictions
 
     Arguments:
@@ -163,7 +154,6 @@ def get_predictions(desc: np.ndarray) -> np.ndarray:
         np.array -- [description]
     """
 
-    model = _load_model(MODEL_PATH)
     desc = _preprocess_data(desc)
-    pred = _predict_classes(desc, model)
+    pred = _predict_classes(desc, model, n_classes)
     return pred
