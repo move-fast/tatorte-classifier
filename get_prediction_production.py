@@ -1,3 +1,16 @@
+"""
+Usage:
+    from get_prediction_production import stemmed_words, get_predictions
+    # stemmed words must be imported for loading the model
+
+    preds = get_predictions(descriptions)
+    pred_classes = preds[0]
+    pred_accuracy_0 = preds[1]
+    pred_accuracy_1 = preds[2]
+    pred_accuracy_2 = preds[3]
+"""
+
+
 import re
 from typing import Callable, Generator, Any
 
@@ -11,11 +24,13 @@ from sklearn.externals import joblib
 # Constants
 # ---------
 MIN_DESC_LEN: int = 40  # The minimum length of the description in characters
-MIN_PREDICTING_PROBA = 0.6  # the minimum probability for a class, to not be classified as not classified
+MIN_PREDICTING_PROBA = (
+    0.6
+)  # the minimum probability for a class, to not be classified as not classified
 MODEL_PATH = "/home/peer/Code/AI/praktikum/production/model.joblib"
 
 # --------------------------------
-# for loading the model via pickle
+# for loading the model via joblib
 # --------------------------------
 
 stemmer: SnowballStemmer = SnowballStemmer("german", ignore_stopwords=True)
@@ -32,10 +47,10 @@ def stemmed_words(doc: np.str_) -> Generator[Any, None, None]:
 
 def _load_model(path: str):
     """Loads the model
-    
+
     Arguments:
         path {str} -- The path to the model
-    
+
     Returns:
         The loaded model
     """
@@ -51,11 +66,11 @@ def _load_model(path: str):
 
 def _preprocess_data(desc: np.ndarray) -> np.ndarray:
     """function for preproccessing data, removes contact data via regex
-    
-    
+
+
     Arguments:
         desc {np.array} -- the descriptions of the cases
-    
+
     Returns:
         np.array -- preprocessed desc with the same size as disc
     """
@@ -74,7 +89,13 @@ def _preprocess_data(desc: np.ndarray) -> np.ndarray:
     )
     remove_links = np.vectorize(
         lambda x: re.sub(
-            "http://", "", re.sub("https://", "", re.sub(r"www.[\d\w-]+(\.[\d\w-]+)*(?:(?:\/[^\s/]*))*", "", x.lower()))
+            "http://",
+            "",
+            re.sub(
+                "https://",
+                "",
+                re.sub(r"www.[\d\w-]+(\.[\d\w-]+)*(?:(?:\/[^\s/]*))*", "", x.lower()),
+            ),
         )
     )
     desc = remove_links(remove_telephones(remove_emails(desc)))
@@ -93,11 +114,11 @@ def _preprocess_data(desc: np.ndarray) -> np.ndarray:
 # ------------------
 def _predict_classes(desc: np.ndarray, model: Pipeline) -> np.ndarray:
     """predict the classes of the desc
-    
+
     Arguments:
         desc {np.array} -- The *preprocessed* descriptions
         model {sklPipeline}
-    
+
     Returns:
         np.array -- A np.array with shape (len(4, desc)) with ints for the classes
              [0] -- The classes (including not classified)
@@ -127,10 +148,10 @@ def _predict_classes(desc: np.ndarray, model: Pipeline) -> np.ndarray:
 
 def get_predictions(desc: np.ndarray) -> np.ndarray:
     """Get the predictions
-    
+
     Arguments:
         desc {np.array} -- [description]
-    
+
     Returns:
         np.array -- [description]
     """
