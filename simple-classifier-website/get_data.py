@@ -35,7 +35,6 @@ remove_links = np.vectorize(
         "http://", "", re.sub("https://", "", re.sub(r"www.[\d\w-]+(\.[\d\w-]+)*(?:(?:\/[^\s/]*))*", "", x.lower()))
     )
 )
-str_contain = np.vectorize(lambda x: "email:" in x.lower())
 x = remove_links(remove_telephones(remove_emails(data.T[1])))
 print("loaded data")
 model = pickle.load(open("model-9.sav", "rb"))
