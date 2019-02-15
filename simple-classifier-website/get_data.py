@@ -5,7 +5,7 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import SGDClassifier
 from sklearn.preprocessing import StandardScaler
-import pickle
+from sklearn.externals import joblib
 import pandas as pd
 from nltk.corpus import stopwords
 from nltk.stem import SnowballStemmer
@@ -37,7 +37,7 @@ remove_links = np.vectorize(
 )
 x = remove_links(remove_telephones(remove_emails(data.T[1])))
 print("loaded data")
-model = pickle.load(open("model-9.sav", "rb"))
+model = joblib.load("model.joblib")
 print("loaded model")
 pred = model.predict_proba(x)
 pred_idx = np.argmax(pred, 1)
