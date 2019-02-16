@@ -32,7 +32,7 @@ MIN_DESC_LEN: int = 40  # The minimum length of the description in characters
 MIN_PREDICTING_PROBA = (
     0.5
 )  # the minimum probability for a class, to not be classified as not classified
-MODEL_PATH = "/home/peer/Code/AI/praktikum/production_api/model.joblib"
+MODEL_PATH = "/app/model.joblib"
 
 # --------------------------------
 # for loading the model via joblib
