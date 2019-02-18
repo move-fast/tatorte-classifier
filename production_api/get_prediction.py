@@ -16,99 +16,33 @@ Versions:
 """
 
 
-import re
 from typing import Callable, Generator, Any
+import dill
 
 import numpy as np
-from nltk.stem import SnowballStemmer
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.pipeline import Pipeline
-from sklearn.externals import joblib
 
-# ---------
-# Constants
-# ---------
-MIN_DESC_LEN: int = 40  # The minimum length of the description in characters
-MIN_PREDICTING_PROBA = (
-    0.5
-)  # the minimum probability for a class, to not be classified as not classified
-MODEL_PATH = "/app/model.joblib"
+from configuration import CURRENT_MODEL_PATH, MIN_DESC_LEN, MIN_PREDICTING_PROBA
+from preprocess_data import DataPreprocessor
+from model import Model
 
 # --------------------------------
-# for loading the model via joblib
+# loading the model
 # --------------------------------
-
-stemmer: SnowballStemmer = SnowballStemmer("german", ignore_stopwords=True)
-
-analyzer: Callable = CountVectorizer().build_analyzer()
-
-
-def stemmed_words(doc: np.str_) -> Generator[Any, None, None]:
-    """Stemming function needed for loading model
-    """
-
-    return (stemmer.stem(w) for w in analyzer(doc))
-
-
-def load_model(path: str = None):
+def load_model() -> Model:
     """Loads the model
 
     Returns:
         The loaded model
     """
 
-    model = joblib.load(path or MODEL_PATH)
+    model = dill.load(open(CURRENT_MODEL_PATH, "rb"))
     return model
-
-
-# ------------------
-# Data preprocessing
-# ------------------
-
-
-def _preprocess_data(desc: np.ndarray) -> np.ndarray:
-    """function for preproccessing data, removes contact data via regex
-
-
-    Arguments:
-        desc {np.array} -- the descriptions of the cases
-
-    Returns:
-        np.array -- preprocessed desc with the same size as disc
-    """
-    # -------------------
-    # remove contact data
-    # -------------------
-    remove_emails = np.vectorize(
-        lambda x: re.sub(r"\S*@\S*\s?", "", re.sub("email:", "", re.sub("e-mail:", "", x.lower())))
-    )
-    remove_telephones = np.vectorize(
-        lambda x: re.sub(
-            r"(\(?([\d \-\)\–\+\/\(]+)\)?([ .-–\/]?)([\d]+))",
-            "",
-            re.sub("tel.:", "", re.sub("telefon:", "", x.lower())),
-        )
-    )
-    remove_links = np.vectorize(
-        lambda x: re.sub(
-            "http://",
-            "",
-            re.sub(
-                "https://",
-                "",
-                re.sub(r"www.[\d\w-]+(\.[\d\w-]+)*(?:(?:\/[^\s/]*))*", "", x.lower()),
-            ),
-        )
-    )
-    desc = remove_links(remove_telephones(remove_emails(desc)))
-
-    return desc
 
 
 # ------------------
 # Predicting Classes
 # ------------------
-def _predict_classes(desc: np.ndarray, model: Pipeline, n_preds: int) -> np.ndarray:
+def _predict_classes(desc: np.ndarray, model: Model, n_preds: int) -> np.ndarray:
     """predict the classes of the desc
 
     Arguments:
@@ -131,12 +65,12 @@ def _predict_classes(desc: np.ndarray, model: Pipeline, n_preds: int) -> np.ndar
     if len(desc[0]) < MIN_DESC_LEN:
         return [], []
 
-    pred = model.predict_proba(desc)[0]
+    pred = model.pipeline.predict_proba(desc)[0]
     pred_idx = np.argsort(-pred)[:n_preds]
     if pred[pred_idx[0]] < MIN_PREDICTING_PROBA:
         return [], []
     pred = pred[pred_idx]
-    return pred_idx.tolist(), pred.tolist()
+    return pred_idx, pred
 
 
 # ----------------------
@@ -154,6 +88,5 @@ def get_predictions(desc: np.ndarray, model, n_classes: int) -> np.ndarray:
         np.array -- [description]
     """
 
-    desc = _preprocess_data(desc)
     pred = _predict_classes(desc, model, n_classes)
     return pred
