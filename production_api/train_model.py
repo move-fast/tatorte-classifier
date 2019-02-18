@@ -83,7 +83,7 @@ def balance_data(x: np.ndarray, y: np.ndarray, n_per_class: int) -> Tuple[np.nda
 
 def create_model() -> Model:
     model = Model(
-        {"alpha": 1e-5, "max_iter": 1000, "loss": "log", "penalty": "l2"}, {"ngram_range": (1, 4)}
+        {"alpha": 1e-6, "max_iter": 100, "loss": "log", "penalty": "l2"}, {"ngram_range": (1, 4)}
     )
     return model
 

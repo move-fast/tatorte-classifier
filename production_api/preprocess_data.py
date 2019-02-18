@@ -35,7 +35,7 @@ class DataPreprocessor:
         """
 
         x = x.lower()
-        x = x.replace("ß", "ss")
+        #  x = x.replace("ß", "ss")
         x = self._remove_emails(x)
         x = self._remove_telephone(x)
         x = self._remove_links(x)
