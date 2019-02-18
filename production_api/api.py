@@ -52,14 +52,14 @@ def get_key():
                 corresponding class_text
     """
 
-    key = [
+    keys = [
         {"key": 0, "name": "Feuer"},
-        {"key": 1, "name": "Überfall/Körperverletzung"},
-        {"key": 2, "name": "Mord"},
-        {"key": 3, "name": "Drogen"},
-        {"key": 4, "name": "Unfall"},
+        {"key": 1, "name": "Mord"},
+        {"key": 2, "name": "Überfall/Körperverletzung"},
+        {"key": 3, "name": "Unfall"},
+        {"key": 4, "name": "Drogen"},
     ]
-    return jsonify(key)
+    return jsonify(keys)
 
 
 if __name__ == "__main__":

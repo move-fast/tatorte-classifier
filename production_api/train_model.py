@@ -1,12 +1,13 @@
 from model import Model
 from preprocess_data import DataPreprocessor
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, confusion_matrix
 import dill
 import numpy as np
 import time
 import os
 from configuration import MODEL_DIR
+from typing import Callable, Tuple
 
 
 def load_data():
@@ -15,40 +16,54 @@ def load_data():
     return x, y
 
 
-def clean_data(x, y):
-    y[np.where(y == 10)[0]] = 7
-    y[np.where(y == 8)[0]] = 7
-    x = x[np.where(y != 7)]
-    y = y[np.where(y != 7)]
-    y[np.where(y == 2)[0]] = 90
-    y[np.where(y == 3)[0]] = 2
-    y[np.where(y == 4)[0]] = 2
-    y[np.where(y == 5)[0]] = 2
-    y[np.where(y == 9)[0]] = 4
-    y[np.where(y == 90)[0]] = 3
-    y[np.where(y == 6)[0]] = 5
+def _change_category(
+    x: np.ndarray, y: np.ndarray, old_category: int, new_category: int, condition: Callable
+) -> np.ndarray:
+    y[np.intersect1d(np.where(condition(x))[0], np.where(y == old_category)[0])] = new_category
+    return y
+
+
+def _drop_all_containing_keyword(
+    x: np.ndarray, y: np.ndarray, keyword: str, category: int = None
+) -> Tuple[np.ndarray, np.ndarray]:
+    str_contain = np.vectorize(lambda x: keyword in x.lower())
+    idxs = np.where(str_contain(x))
+    if category != None:
+        idxs = np.intersect1d(idxs, np.where(y == category))
+    y = np.delete(y, idxs)
+    x = np.delete(x, idxs)
+    return x, y
+
+
+def clean_data(x: np.ndarray, y: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    # Key:
+    #   1 - Feuer
+    #   2 - Mord
+    #   3 - Überfall/Körperverletzung
+    #   4 - Unfall
+    #   5 - Drogen
+    # Delete "dirty" categories 7, 8, 10
+    x = x[np.intersect1d(np.where(y != 7), np.intersect1d(np.where(y != 8), np.where(y != 10)))]
+    y = y[np.intersect1d(np.where(y != 7), np.intersect1d(np.where(y != 8), np.where(y != 10)))]
+    # combine categories 3, 4, 5
+    y[np.where(y == 4)[0]] = 3
+    y[np.where(y == 5)[0]] = 3
+    # change indexes
+    y[np.where(y == 6)[0]] = 4
+    y[np.where(y == 9)[0]] = 5
 
     # automate Data cleaning
     str_contain = np.vectorize(lambda x: "verkehrskontroll" in x.lower())
-    y[np.intersect1d(np.where(str_contain(x))[0], np.where(y == 4)[0])] = 5
+    y = _change_category(x, y, 5, 4, str_contain)
 
     str_contain = np.vectorize(lambda x: "eingebroch" in x.lower())
-    y[np.intersect1d(np.where(str_contain(x))[0], np.where(y == 1)[0])] = 2
+    y = _change_category(x, y, 4, 3, str_contain)
 
-    str_contain = np.vectorize(lambda x: "alkohol" in x.lower())
-    idxs = np.where(str_contain(x))
-    y = np.delete(y, idxs)
-    x = np.delete(x, idxs)
+    x, y = _drop_all_containing_keyword(x, y, "alkohol")
 
-    str_contain = np.vectorize(lambda x: "dienstagmorg" in x.lower())
-    idxs = np.intersect1d(np.where(str_contain(x)), np.where(y == 2))
-    y = np.delete(y, idxs)
-    x = np.delete(x, idxs)
+    x, y = _drop_all_containing_keyword(x, y, "dienstagmorg", category=3)
 
-    str_contain = np.vectorize(lambda x: "fahrrad" in x.lower())
-    idxs = np.intersect1d(np.where(str_contain(x))[0], np.where(y == 2)[0])
-    x = np.delete(x, idxs)
-    y = np.delete(y, idxs)
+    x, y = _drop_all_containing_keyword(x, y, "fahrrad", category=3)
 
     preprocessor = DataPreprocessor()
     preprocessor = np.vectorize(preprocessor)
@@ -56,7 +71,7 @@ def clean_data(x, y):
     return x, y
 
 
-def balance_data(x, y, n_per_class):
+def balance_data(x: np.ndarray, y: np.ndarray, n_per_class: int) -> Tuple[np.ndarray, np.ndarray]:
     for i in np.unique(y):
         idxs = np.where(y == i)[0]
         np.random.shuffle(idxs)
@@ -66,18 +81,37 @@ def balance_data(x, y, n_per_class):
     return x, y
 
 
-def create_model():
+def create_model() -> Model:
     model = Model(
-        {"alpha": 1e-5, "max_iter": 100, "loss": "log", "penalty": "l2"}, {"ngram_range": (1, 4)}
+        {"alpha": 1e-5, "max_iter": 1000, "loss": "log", "penalty": "l2"}, {"ngram_range": (1, 4)}
     )
     return model
 
 
-def train_model(x_train, x_test, y_train, y_test, model):
+def _print_top10_features(vectorizer, clf, class_labels):
+    """Prints features with the highest coefficient values, per class"""
+    feature_names = vectorizer.get_feature_names()
+    for i, class_label in enumerate(class_labels):
+        top10 = np.argsort(clf.coef_[i])[-10:]
+        print("%s: %s" % (class_label, " ".join(feature_names[j] for j in top10)))
+
+
+def train_model(x_train: np.ndarray, y_train: np.ndarray, model: Model) -> Model:
     model.pipeline = model.pipeline.fit(x_train, y_train)
+    return model
+
+
+def evaluate_model(
+    x_train: np.ndarray, x_test: np.ndarray, y_train: np.ndarray, y_test: np.ndarray, model: Model
+) -> None:
     print("Train acc:", accuracy_score(y_train, model(x_train)))
     print("Test acc:", accuracy_score(y_test, model(x_test)))
-    return model
+    print("Confusion Matrix:\n", confusion_matrix(y_test, model(x_test)))
+    _print_top10_features(
+        model.pipeline.named_steps["vect"],
+        model.pipeline.named_steps["clf"],
+        ["Feuer", "Mord", "Überfall/Körperverletzung", "Unfall", "Drogen"],
+    )
 
 
 def save_model(model):
@@ -99,8 +133,9 @@ def main():
     model = create_model()
     print("Created Model")
     print("Training Model...", end=" ")
-    model = train_model(x_train, x_test, y_train, y_test, model)
+    model = train_model(x_train, y_train, model)
     print("Finished!")
+    evaluate_model(x_train, x_test, y_train, y_test, model)
     save_model(model)
     print("Saved Model")
     return model
