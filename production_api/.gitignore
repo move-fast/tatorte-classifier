@@ -1,4 +1,4 @@
-.pytest_cache/*
-__pycache__/*
-model/*
-.ipynb_checkpoints/*
+**/.pytest_cache/*
+**/__pycache__/*
+**/models/*
+**/.ipynb_checkpoints/*
