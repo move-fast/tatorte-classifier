@@ -9,7 +9,16 @@ class DataPreprocessor:
     """
 
     def __init__(self):
-        self.keywords = ["e-mail", "email", "fax", "tel.", ":", "telefon", "http://", "https://"]
+        self.keywords = [
+            r"e-mail",
+            r"email",
+            r"fax",
+            r"tel\.",
+            r":",
+            r"telefon",
+            r"http://",
+            r"https://",
+        ]
         self.keyword_regex = "(" + "|".join(self.keywords) + ")"
 
     def __call__(self, x: str) -> str:
@@ -40,7 +49,7 @@ class DataPreprocessor:
         return x
 
     def _remove_links(self, x: str) -> str:
-        x = re.sub(r"(\(?([\d \-\)\–\+\/\(]+)\)?([ .-–\/]?)([\d]+))", "", x)
+        x = re.sub(r"www.[\d\w-]+(\.[\d\w-]+)*(?:(?:\/[^\s/]*))*", "", x)
         return x
 
     def _remove_keywords(self, x: str) -> str:
