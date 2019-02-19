@@ -81,8 +81,8 @@ def balance_data(x: np.ndarray, y: np.ndarray, n_per_class: int) -> Tuple[np.nda
     return x, y
 
 
-def create_model(clf_params, vect_params) -> Model:
-    model = Model("sgd", clf_params, vect_params)
+def create_model(clf, clf_params, vect_params) -> Model:
+    model = Model(clf, clf_params, vect_params)
     return model
 
 
@@ -116,7 +116,7 @@ def save_model(model):
     dill.dump(model, open(os.path.join(MODEL_DIR, "model-{}.sav".format(time.time())), "wb"))
 
 
-def main(clf_params, vect_params):
+def main(clf, clf_params, vect_params):
     print("Loading Data...", end=" ")
     x, y = load_data()
     print("Finished!")
@@ -128,7 +128,7 @@ def main(clf_params, vect_params):
     print("  Splitting Data")
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3)
     print("Finished!")
-    model = create_model(clf_params, vect_params)
+    model = create_model(clf, clf_params, vect_params)
     print("Created Model")
     print("Training Model...", end=" ")
     model = train_model(x_train, y_train, model)
@@ -140,4 +140,8 @@ def main(clf_params, vect_params):
 
 
 if __name__ == "__main__":
-    main({"alpha": 1e-6, "max_iter": 100, "loss": "log", "penalty": "l2"}, {"ngram_range": (1, 4)})
+    main(
+        "sgd",
+        {"alpha": 1e-6, "max_iter": 100, "loss": "log", "penalty": "l2"},
+        {"ngram_range": (1, 4)},
+    )
