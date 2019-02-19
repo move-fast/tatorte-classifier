@@ -16,13 +16,11 @@ Versions:
 """
 
 
-from typing import Callable, Generator, Any
 import dill
 
 import numpy as np
 
 from configuration import CURRENT_MODEL_PATH, MIN_DESC_LEN, MIN_PREDICTING_PROBA
-from preprocess_data import DataPreprocessor
 from model import Model
 
 # --------------------------------

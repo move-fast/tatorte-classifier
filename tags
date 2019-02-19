@@ -1,0 +1,95 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_OUTPUT_MODE	u-ctags	/u-ctags or e-ctags/
+!_TAG_PROGRAM_AUTHOR	Universal Ctags Team	//
+!_TAG_PROGRAM_NAME	Universal Ctags	/Derived from Exuberant Ctags/
+!_TAG_PROGRAM_URL	https://ctags.io/	/official site/
+!_TAG_PROGRAM_VERSION	0.0.0	/0b04c129/
+API_HOST	production_api/configuration.py	/^API_HOST: str = str(os.environ.get("API_HOST", "0.0.0.0"))$/;"	v
+API_PORT	production_api/configuration.py	/^API_PORT: str = str(os.environ.get("API_PORT", "5000"))$/;"	v
+CURRENT_MODEL_PATH	production_api/configuration.py	/^CURRENT_MODEL_PATH: str = str(os.environ.get("CURRENT_MODEL_PATH", ".\/models\/model.sav"))$/;"	v
+DataPreprocessor	production_api/preprocess_data.py	/^class DataPreprocessor:$/;"	c
+MIN_DESC_LEN	get_prediction_production.py	/^MIN_DESC_LEN: int = 40  # The minimum length of the description in characters$/;"	v
+MIN_DESC_LEN	production_api/configuration.py	/^MIN_DESC_LEN: int = int(os.environ.get("MIN_DESC_LEN", 40))$/;"	v
+MIN_PREDICTING_PROBA	get_prediction_production.py	/^MIN_PREDICTING_PROBA = ($/;"	v
+MIN_PREDICTING_PROBA	production_api/configuration.py	/^MIN_PREDICTING_PROBA: float = float(os.environ.get("MIN_PREDICTING_PROBA", 0.5))$/;"	v
+MODEL_DIR	production_api/configuration.py	/^MODEL_DIR: str = str(os.environ.get("MODEL_DIR", ".\/models"))$/;"	v
+MODEL_PATH	get_prediction_production.py	/^MODEL_PATH = "\/home\/peer\/Code\/AI\/praktikum\/production\/model.joblib"$/;"	v
+Model	production_api/model.py	/^class Model:$/;"	c
+Tatorte:	simple-classifier-website/templates/index.html	/^    <h1>Tatorte: <\/h1>$/;"	h
+__call__	production_api/model.py	/^    def __call__(self, x):$/;"	m	class:Model
+__call__	production_api/preprocess_data.py	/^    def __call__(self, x: str) -> str:$/;"	m	class:DataPreprocessor
+__init__	production_api/model.py	/^    def __init__(self, clf_params: dict, vect_params: dict):$/;"	m	class:Model
+__init__	production_api/preprocess_data.py	/^    def __init__(self):$/;"	m	class:DataPreprocessor
+_build_stemmer	production_api/model.py	/^    def _build_stemmer(self):$/;"	m	class:Model
+_change_category	production_api/train_model.py	/^def _change_category($/;"	f
+_drop_all_containing_keyword	production_api/train_model.py	/^def _drop_all_containing_keyword($/;"	f
+_load_model	get_prediction_production.py	/^def _load_model(path: str):$/;"	f
+_predict_classes	get_prediction_production.py	/^def _predict_classes(desc: np.ndarray, model: Pipeline) -> np.ndarray:$/;"	f
+_predict_classes	production_api/get_prediction.py	/^def _predict_classes(desc: np.ndarray, model: Model, n_preds: int) -> np.ndarray:$/;"	f
+_preprocess_data	get_prediction_production.py	/^def _preprocess_data(desc: np.ndarray) -> np.ndarray:$/;"	f
+_print_top10_features	production_api/train_model.py	/^def _print_top10_features(vectorizer, clf, class_labels):$/;"	f
+_remove_emails	production_api/preprocess_data.py	/^    def _remove_emails(self, x: str) -> str:$/;"	m	class:DataPreprocessor
+_remove_keywords	production_api/preprocess_data.py	/^    def _remove_keywords(self, x: str) -> str:$/;"	m	class:DataPreprocessor
+_remove_links	production_api/preprocess_data.py	/^    def _remove_links(self, x: str) -> str:$/;"	m	class:DataPreprocessor
+_remove_punctuation	production_api/preprocess_data.py	/^    def _remove_punctuation(self, x: str) -> str:$/;"	m	class:DataPreprocessor
+_remove_telephone	production_api/preprocess_data.py	/^    def _remove_telephone(self, x: str) -> str:$/;"	m	class:DataPreprocessor
+analyzer	get_prediction_production.py	/^analyzer: Callable = CountVectorizer().build_analyzer()$/;"	v
+analyzer	simple-classifier-website/get_data.py	/^analyzer = CountVectorizer().build_analyzer()$/;"	v
+app	production_api/api.py	/^app = Flask("tatorte_api")$/;"	v
+app	simple-classifier-website/main.py	/^app = Flask(__name__, template_folder="templates")$/;"	v
+balance_data	production_api/train_model.py	/^def balance_data(x: np.ndarray, y: np.ndarray, n_per_class: int) -> Tuple[np.ndarray, np.ndarray/;"	f
+clean_data	production_api/train_model.py	/^def clean_data(x: np.ndarray, y: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:$/;"	f
+colors	simple-classifier-website/get_data.py	/^colors = np.full((1000), "#ffffff")$/;"	v
+colors	simple-classifier-website/main.py	/^colors = data[4]$/;"	v
+create_model	production_api/train_model.py	/^def create_model() -> Model:$/;"	f
+data	simple-classifier-website/get_data.py	/^data = data[["title", "description"]].dropna().to_numpy()[:1000].astype(str)$/;"	v
+data	simple-classifier-website/get_data.py	/^data = data[data.description.str.len() > 40]$/;"	v
+data	simple-classifier-website/get_data.py	/^data = np.concatenate((data.T, pred_idx.reshape(1, -1), probs.reshape(1, -1), colors.reshape(1, /;"	v
+data	simple-classifier-website/get_data.py	/^data = pd.read_csv("\/home\/peer\/Data\/tatorte.csv", ";")$/;"	v
+data	simple-classifier-website/main.py	/^data = np.load("data.npy")$/;"	v
+descs	simple-classifier-website/main.py	/^descs = data[1]$/;"	v
+evaluate_model	production_api/train_model.py	/^def evaluate_model($/;"	f
+get_details	simple-classifier-website/main.py	/^def get_details(idx):$/;"	f
+get_key	production_api/api.py	/^def get_key():$/;"	f
+get_predictions	get_prediction_production.py	/^def get_predictions(desc: np.ndarray) -> np.ndarray:$/;"	f
+get_predictions	production_api/get_prediction.py	/^def get_predictions(desc: np.ndarray, model, n_classes: int) -> np.ndarray:$/;"	f
+get_preds	production_api/api.py	/^def get_preds():$/;"	f
+hello_world	simple-classifier-website/main.py	/^def hello_world():$/;"	f
+load_data	production_api/train_model.py	/^def load_data():$/;"	f
+load_model	production_api/get_prediction.py	/^def load_model() -> Model:$/;"	f
+main	production_api/train_model.py	/^def main():$/;"	f
+model	production_api/api.py	/^model = load_model()$/;"	v
+model	simple-classifier-website/get_data.py	/^model = joblib.load("model.joblib")$/;"	v
+np	get_prediction_production.py	/^import numpy as np$/;"	I
+np	production_api/api.py	/^import numpy as np$/;"	I
+np	production_api/get_prediction.py	/^import numpy as np$/;"	I
+np	production_api/model.py	/^import numpy as np$/;"	I
+np	production_api/train_model.py	/^import numpy as np$/;"	I
+np	simple-classifier-website/get_data.py	/^import numpy as np$/;"	I
+np	simple-classifier-website/main.py	/^import numpy as np$/;"	I
+pd	simple-classifier-website/get_data.py	/^import pandas as pd$/;"	I
+pd	simple-classifier-website/main.py	/^import pandas as pd$/;"	I
+pred	simple-classifier-website/get_data.py	/^pred = model.predict_proba(x)$/;"	v
+pred_idx	simple-classifier-website/get_data.py	/^pred_idx = np.argmax(pred, 1)$/;"	v
+preds	simple-classifier-website/main.py	/^preds = data[2]$/;"	v
+preprocessor	production_api/api.py	/^preprocessor = DataPreprocessor()$/;"	v
+preprocessor	production_api/test_preprocess_data.py	/^preprocessor = DataPreprocessor()$/;"	v
+probs	simple-classifier-website/get_data.py	/^probs = pred[np.arange(len(pred_idx)), pred_idx]$/;"	v
+probs	simple-classifier-website/main.py	/^probs = data[3]$/;"	v
+pytest cache directory	.pytest_cache/README.md	/^# pytest cache directory #$/;"	c
+pytest cache directory	production_api/.pytest_cache/README.md	/^# pytest cache directory #$/;"	c
+remove_emails	simple-classifier-website/get_data.py	/^remove_emails = np.vectorize(lambda x: re.sub("\\S*@\\S*\\s?", "", re.sub("email:", "", re.sub("/;"	v
+remove_links	simple-classifier-website/get_data.py	/^remove_links = np.vectorize($/;"	v
+remove_telephones	simple-classifier-website/get_data.py	/^remove_telephones = np.vectorize($/;"	v
+save_model	production_api/train_model.py	/^def save_model(model):$/;"	f
+stemmed_words	get_prediction_production.py	/^def stemmed_words(doc: np.str_) -> Generator[Any, None, None]:$/;"	f
+stemmed_words	production_api/model.py	/^        def stemmed_words(doc):$/;"	f	member:Model._build_stemmer	file:
+stemmed_words	simple-classifier-website/get_data.py	/^def stemmed_words(doc):$/;"	f
+stemmer	get_prediction_production.py	/^stemmer: SnowballStemmer = SnowballStemmer("german", ignore_stopwords=True)$/;"	v
+stemmer	simple-classifier-website/get_data.py	/^stemmer = SnowballStemmer("german", ignore_stopwords=True)$/;"	v
+test_preprocessor	production_api/test_preprocess_data.py	/^def test_preprocessor():$/;"	f
+texts	production_api/test_preprocess_data.py	/^texts = {$/;"	v
+titles	simple-classifier-website/main.py	/^titles = data[0]$/;"	v
+train_model	production_api/train_model.py	/^def train_model(x_train: np.ndarray, y_train: np.ndarray, model: Model) -> Model:$/;"	f
+x	simple-classifier-website/get_data.py	/^x = remove_links(remove_telephones(remove_emails(data.T[1])))$/;"	v

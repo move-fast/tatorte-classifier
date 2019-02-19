@@ -6,13 +6,13 @@ import dill
 import numpy as np
 import time
 import os
-from configuration import MODEL_DIR
+from configuration import MODEL_DIR, DATA_X_PATH, DATA_Y_PATH
 from typing import Callable, Tuple
 
 
 def load_data():
-    x = np.load("/home/peer/Data/data_x.npy")
-    y = np.load("/home/peer/Data/data_y.npy")
+    x = np.load(DATA_X_PATH)
+    y = np.load(DATA_Y_PATH)
     return x, y
 
 
@@ -81,10 +81,8 @@ def balance_data(x: np.ndarray, y: np.ndarray, n_per_class: int) -> Tuple[np.nda
     return x, y
 
 
-def create_model() -> Model:
-    model = Model(
-        {"alpha": 1e-6, "max_iter": 100, "loss": "log", "penalty": "l2"}, {"ngram_range": (1, 4)}
-    )
+def create_model(clf_params, vect_params) -> Model:
+    model = Model(clf_params, vect_params)
     return model
 
 
@@ -118,7 +116,7 @@ def save_model(model):
     dill.dump(model, open(os.path.join(MODEL_DIR, "model-{}.sav".format(time.time())), "wb"))
 
 
-def main():
+def main(clf_params, vect_params):
     print("Loading Data...", end=" ")
     x, y = load_data()
     print("Finished!")
@@ -130,7 +128,7 @@ def main():
     print("  Splitting Data")
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3)
     print("Finished!")
-    model = create_model()
+    model = create_model(clf_params, vect_params)
     print("Created Model")
     print("Training Model...", end=" ")
     model = train_model(x_train, y_train, model)
@@ -142,4 +140,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main({"alpha": 1e-6, "max_iter": 100, "loss": "log", "penalty": "l2"}, {"ngram_range": (1, 4))
