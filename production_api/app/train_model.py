@@ -82,7 +82,7 @@ def balance_data(x: np.ndarray, y: np.ndarray, n_per_class: int) -> Tuple[np.nda
 
 
 def create_model(clf_params, vect_params) -> Model:
-    model = Model(clf_params, vect_params)
+    model = Model("sgd", clf_params, vect_params)
     return model
 
 
@@ -140,4 +140,4 @@ def main(clf_params, vect_params):
 
 
 if __name__ == "__main__":
-    main({"alpha": 1e-6, "max_iter": 100, "loss": "log", "penalty": "l2"}, {"ngram_range": (1, 4))
+    main({"alpha": 1e-6, "max_iter": 100, "loss": "log", "penalty": "l2"}, {"ngram_range": (1, 4)})

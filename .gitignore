@@ -4,3 +4,5 @@
 **/.ipynb_checkpoints/*
 .env
 **/data/*
+.vscode
+.mypy_cache
