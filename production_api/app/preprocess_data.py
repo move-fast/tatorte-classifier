@@ -40,7 +40,7 @@ class DataPreprocessor:
         x = self._remove_telephone(x)
         x = self._remove_links(x)
         x = self._remove_keywords(x)
-        # x = self._remove_punctuation(x)
+        x = self._remove_punctuation(x)
         return x
 
     def _remove_emails(self, x: str) -> str:
