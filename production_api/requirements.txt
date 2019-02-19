@@ -4,3 +4,4 @@ numpy==1.16.1
 nltk==3.4
 dill==0.2.9
 python-dotenv==0.10.1
+pymongo==3.7.2

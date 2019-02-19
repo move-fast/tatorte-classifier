@@ -14,7 +14,10 @@ ENV API_HOST 0.0.0.0
 ENV API_PORT 5000
 ENV DATA_X_PATH /data/data_x.npy
 ENV DATA_Y_PATH /data/data_y.npy
-
+ENV MONGO_USER test_user
+ENV MONGO_PASSWORD Y76K9p-#wkFa]X%f%g9w
+ENV MONGO_URL ds161024.mlab.com
+ENV MONGO_PORT 61024
 #### Installs ####
 RUN pip install -r /requirements.txt
 RUN python -c "import nltk; nltk.download('stopwords')"

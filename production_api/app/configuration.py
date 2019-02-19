@@ -14,3 +14,8 @@ API_PORT: str = str(os.getenv("API_PORT"))
 
 DATA_X_PATH: str = str(os.getenv("DATA_X_PATH"))
 DATA_Y_PATH: str = str(os.getenv("DATA_Y_PATH"))
+
+MONGO_USER: str = str(os.getenv("MONGO_USER"))
+MONGO_PASSWORD: str = str(os.getenv("MONGO_PASSWORD"))
+MONGO_URL: str = str(os.getenv("MONGO_URL"))
+MONGO_PORT: str = str(os.getenv("MONGO_PORT"))
