@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <title>New Model</title>
+</head>
+
+<body>
+    <script>
+
+        function train_model() {
+            classifier = document.getElementById("clf").value
+            vect_params = { "ngram_range": [document.getElementById("ngram_1").value, document.getElementById("ngram_2")] }
+            console.log(er)
+        }
+        function change_options() {
+            document.getElementById("clf_options").innerHTML = ""
+            const Http = new XMLHttpRequest();
+            model_name = document.getElementById("clf").value
+            const url = '/api/get_model_options/' + model_name;
+            Http.open("GET", url);
+            Http.send()
+            Http.onreadystatechange = function () {
+                if (this.status == 200 && this.readyState == 4) {
+                    options = JSON.parse(Http.response)
+                    console.log(options)
+                    for (var key in options) {
+                        console.log(typeof options[key])
+                        if (typeof options[key] == "number") {
+                            document.getElementById("clf_options").innerHTML += "<div class='input-field col s6'><label>" + key + "</label><input type='number' step='0.000001' value=" + options[key] + "></div>"
+                        } else if (typeof options[key] == "object") {
+
+                            document.getElementById("clf_options").innerHTML += "<select class='browser-default' id='dropdown-" + key + "'></select>"
+                            for (i = 0; i < options[key].length; i++) {
+                                console.log(options[key][i])
+                                document.getElementById("dropdown-" + key).innerHTML += "<option value='" + options[key][i] + "'>" + options[key][i] + "</option>"
+                            }
+                            console.log("Done!")
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <select onchange="change_options()" id="clf" class="browser-default">
+        <option value="" disabled selected>Choose your option</option>
+        <option value="sgd">SGD</option>
+        <option value="svm">SVM</option>
+        <option value="nn">NN</option>
+    </select>
+    <br>
+    <div id="clf_options">
+
+    </div>
+    <br>
+    <div id="vect_options">
+        <div class='input-field col s6'><label>ngram_range 1</label><input type='number' step='1' id="ngram_1"></div>
+        <div class='input-field col s6'><label>ngram_range 2</label><input type='number' step='1' id="ngram_2"></div>
+    </div>
+    <br>
+    <button onclick="train_model()" class="waves-effect waves-light btn-large">Train Model</a>
+
+</body>
+
+</html>

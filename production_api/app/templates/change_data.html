@@ -37,7 +37,7 @@
             const url = '/api/delete_text/' + text_id;
             Http.open("GET", url);
             Http.send();
-            window.location.href = "/texts"
+            window.location.href = "/texts/1"
         }
 
         function submit_and_reload() {
@@ -54,7 +54,7 @@
                 Http.open("POST", url)
                 Http.setRequestHeader("Content-type", "application/json")
                 Http.send('{"id": "' + text_id + '", "categories": [' + categories + ']}')
-                window.location.href = "/texts"
+                window.location.href = "/texts/1"
             } else {
                 alert("At least on checkbox has to be checked")
             }

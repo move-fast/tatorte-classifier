@@ -30,6 +30,7 @@ from train_model import main as train_model
 # TODO: Make stuff more consistent
 # TODO: Add search function to texts
 # TODO: Add Model website
+# TODO: Finish NN Creation
 
 app = Flask("tatorte_api", template_folder=TEMPLATE_FOLDER)
 model = load_model()
@@ -274,6 +275,43 @@ def get_random_text():
     return dumps(texts.aggregate([{"$sample": {"size": 1}}]))
 
 
+@app.route("/api/get_model_options/<model_name>")
+def get_model_options(model_name):
+    if model_name == "sgd":
+        return jsonify(
+            {
+                "loss": ["hinge", "log", "modified_huber", "squared_hinge", "perceptron"],
+                "penalty": ["l2", "l1", "elastic_net"],
+                "alpha": 0.0001,
+                "n_iter": 100,
+            }
+        )
+    elif model_name == "svm":
+        return jsonify(
+            {
+                "C": 1.0,
+                "kernel": ["linear", "poly", "rbf", "sigmoid", "precomputed"],
+                "degree": 3,
+                "probability": False,
+                "tol": 0.001,
+                "max_iter": -1,
+            }
+        )
+    elif model_name == "nn":
+        return jsonify(
+            {
+                "hidden_layer_sizes": "(100, )",
+                "activation": ["identity", "logistic", "tanh", "relu"],
+                "solver": ["adam", "lbfgs", "sgd"],
+                "alpha": 0.0001,
+                "learning_rate": ["constant", "invscaling", "adaptive"],
+                "max_iter": 200,
+            }
+        )
+    else:
+        return BadRequest("please choose one of the classifiers: [svm, sgd, nn]")
+
+
 ############
 # Frontend #
 ############
@@ -331,6 +369,11 @@ def change_data_with_id(text_id):
         default_data=this_text["data"],
         default_categories=this_text["categories"],
     )
+
+
+@app.route("/new-model", methods=["GET"])
+def new_model_frontend():
+    return render_template("new_model.html")
 
 
 if __name__ == "__main__":

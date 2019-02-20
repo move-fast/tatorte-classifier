@@ -16,6 +16,10 @@
             display: flex;
             align-items: center
         }
+
+        body {
+            padding: 2em;
+        }
     </style>
     <script>
         function getAllIndexes(arr, val) {
@@ -38,7 +42,7 @@
             location.reload()
         }
         function submit_and_reload() {
-            const url = '/api/update_categories';
+            const url = '/api/change_categories';
             checkbox_1 = document.getElementById("checkbox-1").checked
             checkbox_2 = document.getElementById("checkbox-2").checked
             checkbox_3 = document.getElementById("checkbox-3").checked
@@ -96,6 +100,7 @@
                 onclick="submit_and_reload()">
         </div>
     </form>
+    <br>
     <button class="btn waves-effect waves-light red" onclick="delete_and_reload()">Delete</button>
 </body>
 
