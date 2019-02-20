@@ -3,21 +3,21 @@ import os
 
 import numpy as np
 import pymongo
+import requests
 from bson.json_util import dumps
 from bson.objectid import ObjectId
-from flask import Flask, jsonify, request, send_file, render_template
+from flask import Flask, jsonify, render_template, request, send_file
 from werkzeug.exceptions import BadRequest
-
 
 from configuration import (
     API_HOST,
     API_PORT,
+    CURRENT_MODEL_PATH,
+    MODEL_DIR,
     MONGO_PASSWORD,
     MONGO_PORT,
     MONGO_URL,
     MONGO_USER,
-    CURRENT_MODEL_PATH,
-    MODEL_DIR,
     TEMPLATE_FOLDER,
 )
 from get_prediction import get_predictions, load_model
@@ -114,7 +114,7 @@ def get_texts():
         ]
     """
 
-    return dumps(texts.find())
+    return dumps(texts.find().sort("time_modified", pymongo.ASCENDING).limit(1000))
 
 
 @app.route("/api/text/<text_id>", methods=["GET"])
@@ -219,8 +219,8 @@ def new_model():
         request_json = request.get_json()
         data = list(texts.find({}, {"data": 1, "categories": 1}))
         data = np.asarray([[i["data"], i["categories"][0]] for i in data]).T
-        x, y = data[0], data[1]
-        id, train_acc, test_acc, conf_matrix = train_model(x, y, **request_json)
+        x, y = data[0], data[1].astype(int)
+        id, train_acc, test_acc, _ = train_model(x, y, **request_json)
         return jsonify({"id": id, "train_acc": train_acc, "test_acc": test_acc})
     except Exception as err:
         return BadRequest(str(err))
@@ -259,6 +259,28 @@ def get_model(model_id):
 @app.route("/", methods=["GET"])
 def index():
     return render_template("index.html")
+
+
+@app.route("/texts", methods=["GET"])
+def texts_frontend():
+    return render_template(
+        "texts.html", texts=requests.get(f"http://{API_HOST}:{API_PORT}/api/texts").json()
+    )
+
+
+@app.route("/data-checker", methods=["GET"])
+def data_checker():
+    return render_template("data-checker.html")
+
+
+@app.route("/add-data", methods=["GET"])
+def add_data():
+    return render_template("add-data.html")
+
+
+@app.route("/change-data", methods=["GET"])
+def change_data():
+    return render_template("change-data.html")
 
 
 if __name__ == "__main__":
