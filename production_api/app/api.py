@@ -5,7 +5,9 @@ import numpy as np
 import pymongo
 from bson.json_util import dumps
 from bson.objectid import ObjectId
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_file, render_template
+from werkzeug.exceptions import BadRequest
+
 
 from configuration import (
     API_HOST,
@@ -16,6 +18,7 @@ from configuration import (
     MONGO_USER,
     CURRENT_MODEL_PATH,
     MODEL_DIR,
+    TEMPLATE_FOLDER,
 )
 from get_prediction import get_predictions, load_model
 from preprocess_data import DataPreprocessor
@@ -24,8 +27,9 @@ from train_model import main as train_model
 # TODO: Add Error checking
 # TODO: Change function names
 # TODO: Ask if conf_matrix should also be returned
-
-app = Flask("tatorte_api")
+# TODO: Ask if models should also be stored on MongoDB
+# TODO: Change filename of returned object by /model/<model_id>
+app = Flask("tatorte_api", template_folder=TEMPLATE_FOLDER)
 model = load_model()
 preprocessor = DataPreprocessor()
 client = pymongo.MongoClient(
@@ -34,8 +38,10 @@ client = pymongo.MongoClient(
 db = client["tatorte-db"]
 texts = db["texts"]
 
-
-@app.route("/get_prediction", methods=["POST"])
+#######
+# API #
+#######
+@app.route("/api/get_prediction", methods=["POST"])
 def get_preds():
     """Get predictions and probabilitys
     Input:
@@ -59,16 +65,19 @@ def get_preds():
             }]
         }
     """
-    request_json = request.get_json()
-    max_categories = request_json["parameters"]["max_categories"]
-    desc = request_json["data"]
-    desc = preprocessor(desc)
-    preds = np.asarray(get_predictions([desc], model, max_categories)).T
-    preds = [{"category": pred_idx, "probability": pred} for pred_idx, pred in preds]
-    return jsonify({"predictions": preds})
+    try:
+        request_json = request.get_json()
+        max_categories = request_json["parameters"]["max_categories"]
+        desc = request_json["data"]
+        desc = preprocessor(desc)
+        preds = np.asarray(get_predictions([desc], model, max_categories)).T
+        preds = [{"category": pred_idx, "probability": pred} for pred_idx, pred in preds]
+        return jsonify({"predictions": preds})
+    except Exception as err:
+        return BadRequest(str(err))
 
 
-@app.route("/categories", methods=["GET"])
+@app.route("/api/categories", methods=["GET"])
 def get_key():
     """Returns the key for translating class_numbers to text
 
@@ -87,17 +96,48 @@ def get_key():
     return jsonify(keys)
 
 
-@app.route("/texts", methods=["GET"])
+@app.route("/api/texts", methods=["GET"])
 def get_texts():
+    """
+    
+    Returns:
+        [
+            {
+                "_id": {
+                    "$oid": "5c6c1b2573cda500b254404c"
+                }, 
+                "data": "This is a test. Number 2",
+                "time_created": "2019-02-19 15:05:09",
+                "time_modified": "2019-02-19 15:18:53",
+                "categories": [4, 2]
+            }, ...
+        ]
+    """
+
     return dumps(texts.find())
 
 
-@app.route("/text/<id>", methods=["GET"])
-def get_text(id):
-    return dumps(texts.find_one({"_id": ObjectId(id)}))
+@app.route("/api/text/<text_id>", methods=["GET"])
+def get_text(text_id):
+    """
+    Returns:
+        {
+            "_id": {
+                "$oid": "5c6c1b2573cda500b254404c"
+            }, 
+            "data": "This is a test. Number 2",
+            "time_created": "2019-02-19 15:05:09",
+            "time_modified": "2019-02-19 15:18:53",
+            "categories": [4, 2]
+        }
+    """
+    try:
+        return dumps(texts.find_one({"_id": ObjectId(text_id)}))
+    except Exception as err:
+        return BadRequest(str(err))
 
 
-@app.route("/create_text", methods=["POST"])
+@app.route("/api/create_text", methods=["POST"])
 def create_text():
     """
     Input:
@@ -109,20 +149,22 @@ def create_text():
     Returns:
         <id>
     """
+    try:
+        request_json = request.get_json()
+        text_created_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        text = {
+            "data": request_json["data"],
+            "time_created": text_created_date,
+            "time_modified": text_created_date,
+            "categories": request_json["categories"],
+        }
+        text_id = texts.insert_one(text).inserted_id
+        return str(text_id)
+    except Exception as err:
+        return BadRequest(str(err))
 
-    request_json = request.get_json()
-    text_created_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    text = {
-        "data": request_json["data"],
-        "time_created": text_created_date,
-        "time_modified": text_created_date,
-        "categories": request_json["categories"],
-    }
-    text_id = texts.insert_one(text).inserted_id
-    return str(text_id)
 
-
-@app.route("/update_categories", methods=["POST"])
+@app.route("/api/update_categories", methods=["POST"])
 def change_text():
     """
     Input:
@@ -148,11 +190,11 @@ def change_text():
             upsert=False,
         )
         return jsonify({"success": True})
-    except:
-        return jsonify({"success": False})
+    except Exception as err:
+        return BadRequest(str(err))
 
 
-@app.route("/train_model", methods=["POST"])
+@app.route("/api/train_model", methods=["POST"])
 def new_model():
     """
     Input:
@@ -173,21 +215,50 @@ def new_model():
     Returns:
 
     """
+    try:
+        request_json = request.get_json()
+        data = list(texts.find({}, {"data": 1, "categories": 1}))
+        data = np.asarray([[i["data"], i["categories"][0]] for i in data]).T
+        x, y = data[0], data[1]
+        id, train_acc, test_acc, conf_matrix = train_model(x, y, **request_json)
+        return jsonify({"id": id, "train_acc": train_acc, "test_acc": test_acc})
+    except Exception as err:
+        return BadRequest(str(err))
 
-    request_json = request.get_json()
-    id, train_acc, test_acc, conf_matrix = train_model(**request_json)
-    return jsonify({"id": id, "train_acc": train_acc, "test_acc": test_acc})
 
-
-@app.route("/change_model/<id>", methods=["GET"])
-def change_model(id):
+@app.route("/api/change_model/<model_id>", methods=["GET"])
+def change_model(model_id):
+    global model
     try:
         os.system("rm -f " + CURRENT_MODEL_PATH)
-        os.system("cp {}/model-{}.sav {}".format(MODEL_DIR, id, CURRENT_MODEL_PATH))
+        os.system("cp {}/model-{}.sav {}".format(MODEL_DIR, model_id, CURRENT_MODEL_PATH))
         model = load_model()
         return jsonify({"success": True})
-    except:
-        return jsonify({"success": False})
+    except Exception as err:
+        return BadRequest(str(err))
+
+
+@app.route("/api/model/<model_id>", methods=["GET"])
+def get_model(model_id):
+    """returns model .sav file
+    
+    Returns:
+        file: MODEL_DIR/model<model_id>.sav
+    """
+
+    try:
+        with open("{}/model-{}.sav".format(MODEL_DIR, model_id), "rb") as file:
+            return send_file(file, attachment_filename="model-{}.sav".format(model_id))
+    except Exception as err:
+        return BadRequest(str(err))
+
+
+############
+# Frontend #
+############
+@app.route("/", methods=["GET"])
+def index():
+    return render_template("index.html")
 
 
 if __name__ == "__main__":

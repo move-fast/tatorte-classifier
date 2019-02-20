@@ -8,15 +8,9 @@ import numpy as np
 from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.model_selection import train_test_split
 
-from configuration import DATA_X_PATH, DATA_Y_PATH, MODEL_DIR
+from configuration import MODEL_DIR
 from model import Model
 from preprocess_data import DataPreprocessor
-
-
-def load_data():
-    x = np.load(DATA_X_PATH)
-    y = np.load(DATA_Y_PATH)
-    return x, y
 
 
 def _change_category(
@@ -118,9 +112,8 @@ def save_model(model):
     return id
 
 
-def main(clf, clf_params, vect_params, test_size=0.3, values_per_category=900):
+def main(x, y, clf, clf_params, vect_params, test_size=0.3, values_per_category=900):
     # print("Loading Data...", end=" ")
-    x, y = load_data()
     # print("Finished!")
     # print("Preprocessing Data...")
     # print("  Cleaning Data")
@@ -144,6 +137,8 @@ def main(clf, clf_params, vect_params, test_size=0.3, values_per_category=900):
 if __name__ == "__main__":
     print(
         main(
+            np.load("./data/data_x.npy"),
+            np.load("./data/data_y.npy"),
             "sgd",
             {"alpha": 1e-6, "max_iter": 100, "loss": "log", "penalty": "l2"},
             {"ngram_range": (1, 4)},
