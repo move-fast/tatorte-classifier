@@ -21,6 +21,16 @@ X = np.load("./data/data_x.npy")
 X = np.vectorize(convert_to_string)(X)
 Y = np.load("./data/data_y.npy")
 
+X = X[np.intersect1d(np.where(Y != 7), np.intersect1d(np.where(Y != 8), np.where(Y != 10)))]
+Y = Y[np.intersect1d(np.where(Y != 7), np.intersect1d(np.where(Y != 8), np.where(Y != 10)))]
+# combine categories 3, 4, 5
+Y[np.where(Y == 4)[0]] = 3
+Y[np.where(Y == 5)[0]] = 3
+# change indexes
+Y[np.where(Y == 6)[0]] = 4
+Y[np.where(Y == 9)[0]] = 5
+Y -= 1
+
 current_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 data = [

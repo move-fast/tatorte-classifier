@@ -24,11 +24,13 @@ from get_prediction import get_predictions, load_model
 from preprocess_data import DataPreprocessor
 from train_model import main as train_model
 
-# TODO: Add Error checking
 # TODO: Change function names
 # TODO: Ask if conf_matrix should also be returned
-# TODO: Ask if models should also be stored on MongoDB
 # TODO: Change filename of returned object by /model/<model_id>
+# TODO: Make stuff more consistent
+# TODO: Add search function to texts
+# TODO: Add Model website
+
 app = Flask("tatorte_api", template_folder=TEMPLATE_FOLDER)
 model = load_model()
 preprocessor = DataPreprocessor()
@@ -96,8 +98,8 @@ def get_key():
     return jsonify(keys)
 
 
-@app.route("/api/texts", methods=["GET"])
-def get_texts():
+@app.route("/api/texts/<start>&<end>", methods=["GET"])
+def get_texts(start, end):
     """
     
     Returns:
@@ -114,7 +116,7 @@ def get_texts():
         ]
     """
 
-    return dumps(texts.find().sort("time_modified", pymongo.ASCENDING).limit(1000))
+    return dumps(texts.find().sort("time_modified", pymongo.DESCENDING)[int(start) : int(end)])
 
 
 @app.route("/api/text/<text_id>", methods=["GET"])
@@ -164,7 +166,7 @@ def create_text():
         return BadRequest(str(err))
 
 
-@app.route("/api/update_categories", methods=["POST"])
+@app.route("/api/change_categories", methods=["POST"])
 def change_text():
     """
     Input:
@@ -189,6 +191,15 @@ def change_text():
             },
             upsert=False,
         )
+        return jsonify({"success": True})
+    except Exception as err:
+        return BadRequest(str(err))
+
+
+@app.route("/api/delete_text/<text_id>")
+def delete_text(text_id):
+    try:
+        texts.delete_one({"_id": ObjectId(text_id)})
         return jsonify({"success": True})
     except Exception as err:
         return BadRequest(str(err))
@@ -238,6 +249,11 @@ def change_model(model_id):
         return BadRequest(str(err))
 
 
+@app.route("/api/get_n_texts", methods=["GET"])
+def get_n_texts():
+    return texts.count()
+
+
 @app.route("/api/model/<model_id>", methods=["GET"])
 def get_model(model_id):
     """returns model .sav file
@@ -253,6 +269,11 @@ def get_model(model_id):
         return BadRequest(str(err))
 
 
+@app.route("/api/get_random_text", methods=["GET"])
+def get_random_text():
+    return dumps(texts.aggregate([{"$sample": {"size": 1}}]))
+
+
 ############
 # Frontend #
 ############
@@ -261,26 +282,55 @@ def index():
     return render_template("index.html")
 
 
-@app.route("/texts", methods=["GET"])
-def texts_frontend():
+@app.route("/texts/<page_number>", methods=["GET"])
+def texts_frontend(page_number):
     return render_template(
-        "texts.html", texts=requests.get(f"http://{API_HOST}:{API_PORT}/api/texts").json()
+        "texts.html",
+        texts=requests.get(
+            f"http://{API_HOST}:{API_PORT}/api/texts/{(int(page_number)-1)*100}&{int(page_number)*100}"
+        ).json()[:100],
+        current_page=int(page_number),
     )
 
 
 @app.route("/data-checker", methods=["GET"])
 def data_checker():
-    return render_template("data-checker.html")
+    this_text = requests.get("http://{}:{}/api/get_random_text".format(API_HOST, API_PORT)).json()[
+        0
+    ]
+    return render_template(
+        "data-checker.html",
+        text_id=this_text["_id"]["$oid"],
+        data=this_text["data"],
+        categories=this_text["categories"],
+    )
 
 
 @app.route("/add-data", methods=["GET"])
 def add_data():
-    return render_template("add-data.html")
+    return render_template("add_data.html")
 
 
 @app.route("/change-data", methods=["GET"])
 def change_data():
-    return render_template("change-data.html")
+    return render_template(
+        "change_data.html",
+        default_id="",
+        default_data="",
+        default_categories="",
+        default_vis="hidden",
+    )
+
+
+@app.route("/change-data/<text_id>", methods=["GET"])
+def change_data_with_id(text_id):
+    this_text = requests.get("http://{}:{}/api/text/{}".format(API_HOST, API_PORT, text_id)).json()
+    return render_template(
+        "change_data.html",
+        default_id=text_id,
+        default_data=this_text["data"],
+        default_categories=this_text["categories"],
+    )
 
 
 if __name__ == "__main__":

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <title>Change Data</title>
+    <style>
+        body {
+            padding: 2em;
+        }
+
+        .text-div {
+            margin: 1em 2em 1em 2em;
+            display: inline-block;
+            width: calc(100% - 4em);
+        }
+    </style>
+</head>
+
+<body>
+    <script>
+        function getAllIndexes(arr, val) {
+            var indexes = [], i = -1;
+            while ((i = arr.indexOf(val, i + 1)) != -1) {
+                indexes.push(i);
+            }
+            return indexes;
+        }
+
+        function delete_and_reload() {
+            const Http = new XMLHttpRequest();
+            text_id = document.getElementById("id-text").value
+            const url = '/api/delete_text/' + text_id;
+            Http.open("GET", url);
+            Http.send();
+            window.location.href = "/texts"
+        }
+
+        function submit_and_reload() {
+            const url = '/api/change_categories';
+            checkbox_1 = document.getElementById("checkbox-1").checked
+            checkbox_2 = document.getElementById("checkbox-2").checked
+            checkbox_3 = document.getElementById("checkbox-3").checked
+            checkbox_4 = document.getElementById("checkbox-4").checked
+            checkbox_5 = document.getElementById("checkbox-5").checked
+            text_id = document.getElementById("id-text").value
+            if (checkbox_1 || checkbox_2 || checkbox_3 || checkbox_4 || checkbox_5) {
+                categories = getAllIndexes([checkbox_1, checkbox_2, checkbox_3, checkbox_4, checkbox_5], true)
+                const Http = new XMLHttpRequest();
+                Http.open("POST", url)
+                Http.setRequestHeader("Content-type", "application/json")
+                Http.send('{"id": "' + text_id + '", "categories": [' + categories + ']}')
+                window.location.href = "/texts"
+            } else {
+                alert("At least on checkbox has to be checked")
+            }
+        }
+
+        function load_preview() {
+            if (document.getElementById("id-text").value.length === 24) {
+                document.location.href = "/change-data/" + document.getElementById("id-text").value
+
+            } else {
+                alert("The given Id is not valid")
+            }
+        }
+    </script>
+    <h1>Change Data</h1>
+    <form action="">
+        <textarea id="id-text" class="materialize-textarea" data-length="24">{{  default_id  }}</textarea>
+        <input style="color: #eee" class="btn waves-effect waves-light" type="button" value="Preview"
+            onclick="load_preview()">
+        <div id="preview" style="visibility: {{  default_vis }};">
+            <hr>
+            <div class="text-div">
+                <div style="float:left; width:80%">
+                    <p id=preview-categories>{{  default_data  }}</p>
+                </div>
+                <p id="preview-categories" style="float: right;">{{  default_categories  }}</p>
+            </div>
+            <hr>
+        </div>
+        <p>
+            <label>
+                <input type="checkbox" id="checkbox-1" />
+                <span>Feuer</span>
+            </label>
+        </p>
+        <p>
+            <label>
+                <input type="checkbox" id="checkbox-2" />
+                <span>Mord</span>
+            </label>
+        </p>
+        <p>
+            <label>
+                <input type="checkbox" id="checkbox-3" />
+                <span>Überfall/Körperverletzung</span>
+            </label>
+        </p>
+        <p>
+            <label>
+                <input type="checkbox" id="checkbox-4" />
+                <span>Unfall</span>
+            </label>
+        </p>
+        <p>
+            <label>
+                <input type="checkbox" id="checkbox-5" />
+                <span>Drogen</span>
+            </label>
+        </p>
+        <input style="color: #eee" class="btn waves-effect waves-light" type="button" value="Submit"
+            onclick="submit_and_reload()">
+    </form>
+    <br>
+    <button class="btn waves-effect waves-light red" onclick="delete_and_reload()">Delete</button>
+</body>
+
+</html>

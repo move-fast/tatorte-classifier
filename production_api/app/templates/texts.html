@@ -3,12 +3,45 @@
 
 <head>
     <title>texts</title>
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 </head>
 
 <body>
+    <style>
+        .text-div {
+            margin: 1em 2em 1em 2em;
+            display: inline-block;
+            width: calc(100% - 4em);
+        }
+
+        a {
+            color: inherit;
+        }
+    </style>
+    <h1>Texts</h1>
     {%  for i in texts  %}
-    <p>{{  i["data"]  }}</p>
+    <a href="/change-data/{{ i['_id']['$oid'] }}">
+        <div class="text-div">
+            <div style="float:left; width:80%">
+                <p>{{  i["data"]  }}</p>
+                <p style="font-size: 11px;">{{  i["_id"]["$oid"]  }}</p>
+            </div>
+            <p style="float: right;">{{  i["categories"]  }}</p>
+
+        </div>
+    </a>
+    <hr>
     {%  endfor  %}
+    {% if current_page == 1 %}
+    <a href="/texts/{{ current_page + 1 }}" class="waves-effect waves-light btn-large">Next Page</a>
+    {% else %}
+    <a href="/texts/{{ current_page - 1 }}" class="waves-effect waves-light btn-large">Previous Page</a>
+    <a href="/texts/{{ current_page + 1 }}" class="waves-effect waves-light btn-large">Next Page</a>
+    {% endif %}
 </body>
 
 </html>

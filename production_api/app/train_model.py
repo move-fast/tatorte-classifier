@@ -39,16 +39,6 @@ def clean_data(x: np.ndarray, y: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     #   3 - Überfall/Körperverletzung
     #   4 - Unfall
     #   5 - Drogen
-    # Delete "dirty" categories 7, 8, 10
-    x = x[np.intersect1d(np.where(y != 7), np.intersect1d(np.where(y != 8), np.where(y != 10)))]
-    y = y[np.intersect1d(np.where(y != 7), np.intersect1d(np.where(y != 8), np.where(y != 10)))]
-    # combine categories 3, 4, 5
-    y[np.where(y == 4)[0]] = 3
-    y[np.where(y == 5)[0]] = 3
-    # change indexes
-    y[np.where(y == 6)[0]] = 4
-    y[np.where(y == 9)[0]] = 5
-
     # automate Data cleaning
     str_contain = np.vectorize(lambda x: "verkehrskontroll" in x.lower())
     y = _change_category(x, y, 5, 4, str_contain)
