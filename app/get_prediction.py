@@ -14,14 +14,17 @@ Versions:
     nltk: 3.4
 
 """
-
+import os
 
 import dill
-
+import logging
 import numpy as np
 
 from configuration import CURRENT_MODEL_PATH, MIN_DESC_LEN, MIN_PREDICTING_PROBA
 from model import Model
+
+logger = logging.getLogger(__name__)
+
 
 # --------------------------------
 # loading the model
@@ -33,7 +36,11 @@ def load_model() -> Model:
         The loaded model
     """
 
-    model = dill.load(open(CURRENT_MODEL_PATH, "rb"))
+    model = None
+    if os.path.isfile(CURRENT_MODEL_PATH):
+        model = dill.load(open(CURRENT_MODEL_PATH, "rb"))
+    else:
+        logger.error(f'File {CURRENT_MODEL_PATH} does not exist')
     return model
 
 
