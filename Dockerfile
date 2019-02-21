@@ -7,4 +7,4 @@ COPY . /
 RUN pip install -r /requirements.txt
 RUN python -c "import nltk; nltk.download('stopwords')"
 
-CMD [ "python", "./app/api.py" ]
+CMD [ "python", "./app/app.py" ]

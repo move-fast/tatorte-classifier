@@ -5,8 +5,5 @@ nltk==3.4
 dill==0.2.9
 python-dotenv==0.10.1
 pymongo==3.7.2
-requests==2.21.0
-
-
 # Production
 gunicorn==19.9.0
