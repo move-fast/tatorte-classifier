@@ -33,7 +33,7 @@ app = Flask("tatorte_api", template_folder=TEMPLATE_FOLDER)
 model = load_model()
 preprocessor = DataPreprocessor()
 client = pymongo.MongoClient(
-    os.getenv('MONGODB_URI')
+    os.getenv("MONGODB_URI")
     # "mongodb://{}{}:{}/tatorte-db".format(MONGO_AUTH, MONGO_URL, MONGO_PORT)
 )
 db = client.get_database()  # ["tatorte-db"]
@@ -465,7 +465,7 @@ def texts_frontend(page_number: str):
 
     return render_template(
         "texts.html",
-        texts=get_texts((page_number - 1) * 100, page_number * 100),
+        texts=json.loads(get_texts((int(page_number) - 1) * 100, int(page_number) * 100)),
         current_page=int(page_number),
     )
 
@@ -478,7 +478,7 @@ def data_checker():
         html
     """
 
-    this_text = json.parse(get_random_text())[0]
+    this_text = json.loads(get_random_text())[0]
     return render_template(
         "data-checker.html",
         text_id=this_text["_id"]["$oid"],
@@ -538,6 +538,17 @@ def new_model_frontend():
     """
 
     return render_template("new_model.html")
+
+
+@app.route("/get_predictions", methods=["GET"])
+def get_predictions_frontend():
+    """Frontend for viewing all trained models and their performances
+
+    Returns:
+        html
+    """
+
+    return render_template("get_predictions.html", models=json.loads(get_models()))
 
 
 @app.route("/models", methods=["GET"])

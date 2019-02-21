@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <title>Add Data</title>
+    <style>
+        body {
+            padding: 2em;
+        }
+    </style>
+</head>
+
+<body>
+    <script>
+        function get_predictions() {
+            xhr = new XMLHttpRequest();
+            var url = "/api/get_prediction";
+            xhr.open("POST", url, true);
+            xhr.setRequestHeader("Content-type", "application/json");
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    console.log(xhr.responseText)
+                    document.getElementById("predictions").innerHTML = xhr.responseText
+                }
+            }
+            var data = JSON.stringify({ "data": document.getElementById("data-text").value, "parameters": { "max_categories": 3 } });
+            xhr.send(data);
+        }
+
+
+    </script>
+    <h1>Add Data</h1>
+    <form action="">
+        <textarea onkeyup="get_predictions()" id="data-text" class="materialize-textarea"></textarea>
+    </form>
+    <p id="predictions"></p>
+</body>
+
+</html>
