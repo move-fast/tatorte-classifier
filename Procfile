@@ -1,1 +1,1 @@
-web: gunicorn app:app
+web: gunicorn tatort_classifier:app
