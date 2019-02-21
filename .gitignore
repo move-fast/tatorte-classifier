@@ -6,4 +6,5 @@
 **/data/*
 .vscode
 .mypy_cache
+tags
 .Classifier_SGD.ipynb
