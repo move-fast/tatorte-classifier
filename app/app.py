@@ -2,13 +2,13 @@ import datetime
 import os
 import uuid
 from threading import Thread
+import json
 
 import numpy as np
 import pymongo
-import requests
 from bson.json_util import dumps
 from bson.objectid import ObjectId
-from flask import Flask, jsonify, render_template, request, send_file
+from flask import Flask, jsonify, render_template, request, send_file, url_for
 from werkzeug.exceptions import BadRequest
 
 from configuration import (
@@ -464,9 +464,7 @@ def texts_frontend(page_number: str):
 
     return render_template(
         "texts.html",
-        texts=requests.get(
-            f"http://{API_HOST}:{API_PORT}/api/texts/start={(int(page_number)-1)*100}&end={int(page_number)*100}"
-        ).json()[:100],
+        texts=get_texts((page_number - 1) * 100, page_number * 100),
         current_page=int(page_number),
     )
 
@@ -479,9 +477,7 @@ def data_checker():
         html
     """
 
-    this_text = requests.get("http://{}:{}/api/get_random_text".format(API_HOST, API_PORT)).json()[
-        0
-    ]
+    this_text = json.parse(get_random_text())[0]
     return render_template(
         "data-checker.html",
         text_id=this_text["_id"]["$oid"],
@@ -523,7 +519,7 @@ def change_data_with_id(text_id: str):
         html
     """
 
-    this_text = requests.get("http://{}:{}/api/text/{}".format(API_HOST, API_PORT, text_id)).json()
+    this_text = json.loads(get_text(text_id))
     return render_template(
         "change_data.html",
         default_id=text_id,
@@ -546,15 +542,12 @@ def new_model_frontend():
 @app.route("/models", methods=["GET"])
 def models_frontend():
     """Frontend for viewing all trained models and their performances
-    
+
     Returns:
         html
     """
 
-    return render_template(
-        "models.html",
-        models=requests.get("http://{}:{}/api/models".format(API_HOST, API_PORT)).json(),
-    )
+    return render_template("models.html", models=json.loads(get_models()))
 
 
 if __name__ == "__main__":
