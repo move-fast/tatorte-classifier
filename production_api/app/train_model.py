@@ -88,7 +88,7 @@ def train_model(x_train: np.ndarray, y_train: np.ndarray, model: Model) -> Model
 
 def evaluate_model(
     x_train: np.ndarray, x_test: np.ndarray, y_train: np.ndarray, y_test: np.ndarray, model: Model
-) -> None:
+) -> Tuple:
     return (
         accuracy_score(y_train, model(x_train)),
         accuracy_score(y_test, model(x_test)),
@@ -96,10 +96,11 @@ def evaluate_model(
     )
 
 
-def save_model(model):
-    id = uuid.uuid4().hex[:8]
-    dill.dump(model, open(os.path.join(MODEL_DIR, "model-{}.sav".format(id)), "wb"))
-    return id
+def save_model(model, model_id):
+    # id = uuid.uuid4().hex[:8]
+    print(os.path.join(MODEL_DIR, "model-{}.sav".format(model_id)))
+    dill.dump(model, open(os.path.join(MODEL_DIR, "model-{}.sav".format(model_id)), "wb"))
+    # return id
 
 
 def main(x, y, clf, clf_params, vect_params, test_size=0.3, values_per_category=900):
@@ -119,9 +120,10 @@ def main(x, y, clf, clf_params, vect_params, test_size=0.3, values_per_category=
     model = train_model(x_train, y_train, model)
     # print("Finished!")
     train_acc, test_acc, conf_matrix = evaluate_model(x_train, x_test, y_train, y_test, model)
-    id = save_model(model)
+    # id = save_model(model)
+    print("Finished Training")
     # print("Saved Model")
-    return id, train_acc, test_acc, conf_matrix
+    return model, train_acc, test_acc, conf_matrix
 
 
 if __name__ == "__main__":

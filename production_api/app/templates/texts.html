@@ -26,6 +26,11 @@
             color: inherit;
         }
     </style>
+    <script>
+        function search() {
+            document.location.href = "/"
+        }
+    </script>
     <h1>Texts</h1>
     {%  for i in texts  %}
     <a href="/change-data/{{ i['_id']['$oid'] }}">

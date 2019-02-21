@@ -1,5 +1,7 @@
 import datetime
 import os
+import uuid
+from threading import Thread
 
 import numpy as np
 import pymongo
@@ -14,19 +16,18 @@ from configuration import (
     API_PORT,
     CURRENT_MODEL_PATH,
     MODEL_DIR,
-    MONGO_PASSWORD,
     MONGO_PORT,
     MONGO_URL,
-    MONGO_USER,
+    MONGO_AUTH,
     TEMPLATE_FOLDER,
 )
 from get_prediction import get_predictions, load_model
 from preprocess_data import DataPreprocessor
 from train_model import main as train_model
+from train_model import save_model
+import sys
 
 # TODO: Change function names
-# TODO: Ask if conf_matrix should also be returned
-# TODO: Change filename of returned object by /model/<model_id>
 # TODO: Make stuff more consistent
 # TODO: Add search function to texts
 # TODO: Add Model website
@@ -36,10 +37,12 @@ app = Flask("tatorte_api", template_folder=TEMPLATE_FOLDER)
 model = load_model()
 preprocessor = DataPreprocessor()
 client = pymongo.MongoClient(
-    "mongodb://{}:{}@{}:{}/tatorte-db".format(MONGO_USER, MONGO_PASSWORD, MONGO_URL, MONGO_PORT)
+    "mongodb://{}{}:{}/tatorte-db".format(MONGO_AUTH, MONGO_URL, MONGO_PORT)
 )
 db = client["tatorte-db"]
 texts = db["texts"]
+texts.create_index([("data", "text")])
+models = db["models"]
 
 #######
 # API #
@@ -99,7 +102,8 @@ def get_key():
     return jsonify(keys)
 
 
-@app.route("/api/texts/<start>&<end>", methods=["GET"])
+# Data Api
+@app.route("/api/texts/start=<start>&end=<end>", methods=["GET"])
 def get_texts(start, end):
     """
     
@@ -206,6 +210,17 @@ def delete_text(text_id):
         return BadRequest(str(err))
 
 
+@app.route("/api/get_texts_count", methods=["GET"])
+def get_n_texts():
+    return texts.count()
+
+
+@app.route("/api/get_random_text", methods=["GET"])
+def get_random_text():
+    return dumps(texts.aggregate([{"$sample": {"size": 1}}]))
+
+
+# Model API
 @app.route("/api/train_model", methods=["POST"])
 def new_model():
     """
@@ -227,13 +242,53 @@ def new_model():
     Returns:
 
     """
+
+    request_json = request.get_json()
+
+    def train(x, y):
+        try:
+            this_model, train_acc, test_acc, _ = train_model(x, y, **request_json)
+            this_id = uuid.uuid4().hex[:8]
+            save_model(this_model, str(this_id))
+            model_id = models.insert_one(
+                {
+                    "time_created": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "model_url": "model-{}.sav".format(this_id),
+                    "performance_data": {"train_acc": train_acc, "test_acc": test_acc},
+                    "metadata": {
+                        "clf": request_json["clf"],
+                        "clf_params": request_json["clf_params"],
+                        "vect_params": request_json["vect_params"],
+                        "test_size": request_json["test_size"],
+                        "values_per_category": request_json["values_per_category"],
+                    },
+                    "error_message": "",
+                }
+            ).inserted_id
+            print(f"model-{str(model_id)}.sav")
+        except Exception as err:
+            models.insert_one(
+                {
+                    "time_created": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "model_url": "",
+                    "error_message": str(err),
+                    "performance_data": {},
+                    "metadata": {
+                        "clf": request_json["clf"],
+                        "clf_params": request_json["clf_params"],
+                        "vect_params": request_json["vect_params"],
+                    },
+                }
+            )
+        print("finished")
+
     try:
-        request_json = request.get_json()
         data = list(texts.find({}, {"data": 1, "categories": 1}))
         data = np.asarray([[i["data"], i["categories"][0]] for i in data]).T
         x, y = data[0], data[1].astype(int)
-        id, train_acc, test_acc, _ = train_model(x, y, **request_json)
-        return jsonify({"id": id, "train_acc": train_acc, "test_acc": test_acc})
+        thread = Thread(target=lambda: train(x, y))
+        thread.start()
+        return "Now training Model"
     except Exception as err:
         return BadRequest(str(err))
 
@@ -250,29 +305,25 @@ def change_model(model_id):
         return BadRequest(str(err))
 
 
-@app.route("/api/get_n_texts", methods=["GET"])
-def get_n_texts():
-    return texts.count()
+@app.route("/api/models", methods=["GET"])
+def get_models():
+    return dumps(models.find().sort("time_created", pymongo.DESCENDING))
 
 
-@app.route("/api/model/<model_id>", methods=["GET"])
-def get_model(model_id):
+@app.route("/api/model/<model_name>", methods=["GET"])
+def get_model(model_name):
     """returns model .sav file
     
     Returns:
-        file: MODEL_DIR/model<model_id>.sav
+        file: MODEL_DIR/model_name
     """
 
     try:
-        with open("{}/model-{}.sav".format(MODEL_DIR, model_id), "rb") as file:
-            return send_file(file, attachment_filename="model-{}.sav".format(model_id))
+        print("{}/{}".format(MODEL_DIR, model_name))
+        with open("{}/{}".format(MODEL_DIR, model_name), "rb") as file:
+            return send_file(file, attachment_filename=model_name)
     except Exception as err:
         return BadRequest(str(err))
-
-
-@app.route("/api/get_random_text", methods=["GET"])
-def get_random_text():
-    return dumps(texts.aggregate([{"$sample": {"size": 1}}]))
 
 
 @app.route("/api/get_model_options/<model_name>")
@@ -280,10 +331,10 @@ def get_model_options(model_name):
     if model_name == "sgd":
         return jsonify(
             {
-                "loss": ["hinge", "log", "modified_huber", "squared_hinge", "perceptron"],
+                "loss": ["log", "modified_huber", "squared_hinge", "perceptron"],
                 "penalty": ["l2", "l1", "elastic_net"],
                 "alpha": 0.0001,
-                "n_iter": 100,
+                "max_iter": 100,
             }
         )
     elif model_name == "svm":
@@ -300,7 +351,7 @@ def get_model_options(model_name):
     elif model_name == "nn":
         return jsonify(
             {
-                "hidden_layer_sizes": "(100, )",
+                "hidden_layer_sizes": "50 50",
                 "activation": ["identity", "logistic", "tanh", "relu"],
                 "solver": ["adam", "lbfgs", "sgd"],
                 "alpha": 0.0001,
@@ -325,7 +376,7 @@ def texts_frontend(page_number):
     return render_template(
         "texts.html",
         texts=requests.get(
-            f"http://{API_HOST}:{API_PORT}/api/texts/{(int(page_number)-1)*100}&{int(page_number)*100}"
+            f"http://{API_HOST}:{API_PORT}/api/texts/start={(int(page_number)-1)*100}&end={int(page_number)*100}"
         ).json()[:100],
         current_page=int(page_number),
     )
@@ -374,6 +425,14 @@ def change_data_with_id(text_id):
 @app.route("/new-model", methods=["GET"])
 def new_model_frontend():
     return render_template("new_model.html")
+
+
+@app.route("/models", methods=["GET"])
+def models_frontend():
+    return render_template(
+        "models.html",
+        models=requests.get("http://{}:{}/api/models".format(API_HOST, API_PORT)).json(),
+    )
 
 
 if __name__ == "__main__":

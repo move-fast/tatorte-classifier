@@ -1,7 +1,6 @@
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.pipeline import Pipeline
-from sklearn.externals import joblib
 
 from nltk.corpus import stopwords
 from nltk.stem import SnowballStemmer
@@ -49,7 +48,7 @@ class Model:
             from sklearn.svm import SVC
             from sklearn.preprocessing import StandardScaler
 
-            pipeline_steps.append(("scale", StandardScaler(**scale_params)))
+            pipeline_steps.append(("scale", StandardScaler(**scale_params, with_mean=False)))
             pipeline_steps.append(("clf", SVC(**clf_params)))
         elif clf == "nn":
             from sklearn.neural_network import MLPClassifier
