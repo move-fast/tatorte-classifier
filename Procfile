@@ -1,1 +1,1 @@
-web: gunicorn app:api
+web: gunicorn tatorte_classifier:app

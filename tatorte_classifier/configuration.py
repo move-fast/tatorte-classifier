@@ -17,4 +17,3 @@ MONGO_URL: str = str(os.getenv("MONGO_URL"))
 MONGO_PORT: str = str(os.getenv("MONGO_PORT"))
 
 TEMPLATE_FOLDER: str = str(os.getenv("TEMPLATE_FOLDER"))
-
