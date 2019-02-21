@@ -320,9 +320,7 @@ def get_model(model_name):
     """
 
     try:
-        print("{}/{}".format(MODEL_DIR, model_name))
-        with open("{}/{}".format(MODEL_DIR, model_name), "rb") as file:
-            return send_file(file, attachment_filename=model_name)
+        return send_file("{}/{}".format(MODEL_DIR, model_name), attachment_filename=model_name)
     except Exception as err:
         return BadRequest(str(err))
 
