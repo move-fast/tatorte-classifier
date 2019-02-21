@@ -33,5 +33,5 @@ Y -= 1
 
 data = [{"data": x, "categories": [int(y)]} for x, y in zip(X, Y)]
 print(len(data))
-for i in tqdm.tqdm(data):
+for i in tqdm.tqdm(data[:1000]):
     requests.post("http://localhost:5000/api/create_text", json=i)
