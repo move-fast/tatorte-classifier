@@ -1,5 +1,6 @@
 from preprocess_data import DataPreprocessor
 
+# TODO: fix import
 preprocessor = DataPreprocessor()
 
 # text not directly from datset

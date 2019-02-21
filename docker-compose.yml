@@ -9,7 +9,7 @@ services:
     links:
       - mongo
     volumes:
-      - "/home/peer/Code/AI/praktikum/tatorte-classifier-sharing/app:/app"
+      - "./tatorte_classifier:/app"
   mongo:
     container_name: mongo
     image: mongo
