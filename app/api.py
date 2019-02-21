@@ -40,7 +40,7 @@ client = pymongo.MongoClient(
     os.getenv('MONGODB_URI')
     # "mongodb://{}{}:{}/tatorte-db".format(MONGO_AUTH, MONGO_URL, MONGO_PORT)
 )
-db = client["tatorte-db"]
+db = client.get_database()  # ["tatorte-db"]
 texts = db["texts"]
 texts.create_index([("data", "text")])
 models = db["models"]
