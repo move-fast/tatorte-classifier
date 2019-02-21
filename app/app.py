@@ -25,13 +25,9 @@ from get_prediction import get_predictions, load_model
 from preprocess_data import DataPreprocessor
 from train_model import main as train_model
 from train_model import save_model
-import sys
 
 # TODO: Change function names
 # TODO: Make stuff more consistent
-# TODO: Add search function to texts
-# TODO: Add Model website
-# TODO: Finish NN Creation
 
 app = Flask("tatorte_api", template_folder=TEMPLATE_FOLDER)
 model = load_model()
@@ -185,9 +181,9 @@ def change_text():
     """
     try:
         request_json = request.get_json()
-        id = request_json["id"]
+        text_id = request_json["id"]
         texts.update_one(
-            {"_id": ObjectId(id)},
+            {"_id": ObjectId(text_id)},
             {
                 "$set": {
                     "categories": request_json["categories"],
@@ -202,7 +198,10 @@ def change_text():
 
 
 @app.route("/api/delete_text/<text_id>")
-def delete_text(text_id):
+def delete_text(text_id: str):
+    """Deletes text document with id == <text_id>
+    """
+
     try:
         texts.delete_one({"_id": ObjectId(text_id)})
         return jsonify({"success": True})
@@ -212,11 +211,31 @@ def delete_text(text_id):
 
 @app.route("/api/get_texts_count", methods=["GET"])
 def get_n_texts():
+    """Returns the number of text documents in the database
+    
+    Returns:
+        int -- the number of text documents in the database
+    """
+
     return texts.count()
 
 
 @app.route("/api/get_random_text", methods=["GET"])
 def get_random_text():
+    """Gets a randomly selected text out of the text database
+    
+    Returns:
+        {
+            "_id": {
+                "$oid": "5c6c1b2573cda500b254404c"
+            }, 
+            "data": "This is a test. Number 2",
+            "time_created": "2019-02-19 15:05:09",
+            "time_modified": "2019-02-19 15:18:53",
+            "categories": [4, 2]
+        }
+    """
+
     return dumps(texts.aggregate([{"$sample": {"size": 1}}]))
 
 
@@ -240,7 +259,7 @@ def new_model():
             "values_per_category": 900
         }
     Returns:
-
+        Error message or "Now training model". To gvet access to the model just class /api/models and look for your model
     """
 
     request_json = request.get_json()
@@ -265,7 +284,6 @@ def new_model():
                     "error_message": "",
                 }
             ).inserted_id
-            print(f"model-{str(model_id)}.sav")
         except Exception as err:
             models.insert_one(
                 {
@@ -280,7 +298,6 @@ def new_model():
                     },
                 }
             )
-        print("finished")
 
     try:
         data = list(texts.find({}, {"data": 1, "categories": 1}))
@@ -293,12 +310,24 @@ def new_model():
         return BadRequest(str(err))
 
 
-@app.route("/api/change_model/<model_id>", methods=["GET"])
-def change_model(model_id):
+@app.route("/api/change_model/<model_name>", methods=["GET"])
+def change_model(model_name: str):
+    """changes the current model, which is used for /api/get_predictions
+    
+    Arguments:
+        model_name {str} -- the name of the model (model-<id>.sav)
+    
+    Returns:
+        error message or success message
+    """
+
     global model
     try:
-        os.system("rm -f " + CURRENT_MODEL_PATH)
-        os.system("cp {}/model-{}.sav {}".format(MODEL_DIR, model_id, CURRENT_MODEL_PATH))
+        try:  # only if VURRENT_MODEL exists
+            os.system("rm -f " + CURRENT_MODEL_PATH)
+        except:
+            pass
+        os.system("cp {}/{} {}".format(MODEL_DIR, model_name, CURRENT_MODEL_PATH))
         model = load_model()
         return jsonify({"success": True})
     except Exception as err:
@@ -307,6 +336,42 @@ def change_model(model_id):
 
 @app.route("/api/models", methods=["GET"])
 def get_models():
+    """Get a list of metadata, performance-data for all the models
+    
+    Returns:
+        [
+            {
+                "_id": {
+                    "$oid": "5c6ec0288c55ec0013a2bd81"
+                },
+                "time_created": "2019-02-21 15:13:44",
+                "model_url": "model-8d5e4706.sav",
+                "performance_data": {
+                    "train_acc": 1,
+                    "test_acc": 0.7123287671232876
+                },
+                "metadata": {
+                    "clf": "sgd",
+                    "clf_params": {
+                        "alpha": 0.0001,
+                        "loss": "log",
+                        "max_iter": 100,
+                        "penalty": "l2"
+                    },
+                    "vect_params": {
+                        "ngram_range": [
+                            1,
+                            2
+                        ]
+                    },
+                    "test_size": 0.3,
+                    "values_per_category": 200
+                },
+                "error_message": ""
+            }, ...
+        ]
+    """
+
     return dumps(models.find().sort("time_created", pymongo.DESCENDING))
 
 
@@ -326,6 +391,20 @@ def get_model(model_name):
 
 @app.route("/api/get_model_options/<model_name>")
 def get_model_options(model_name):
+    """Get list of params, which can be passed to different classifiers
+    
+    Arguments:
+        model_name {str} -- The name of the classifier. [sgd, svm, nn]
+    
+    Returns for Example (sgd):
+        {
+            "loss": ["log", "modified_huber", "squared_hinge", "perceptron"], # list means that there should be a dropdown selector
+            "penalty": ["l2", "l1", "elastic_net"], 
+            "alpha": 0.0001, # number means that there should be a number input
+            "max_iter": 100,
+        }
+    """
+
     if model_name == "sgd":
         return jsonify(
             {
@@ -366,11 +445,23 @@ def get_model_options(model_name):
 ############
 @app.route("/", methods=["GET"])
 def index():
+    """Home page with link to all sub-pages. Upper half is Data and the other half is Model
+    """
+
     return render_template("index.html")
 
 
 @app.route("/texts/<page_number>", methods=["GET"])
-def texts_frontend(page_number):
+def texts_frontend(page_number: str):
+    """Get texts sorted by modification with pagenumber being results (<page_number> - 1) * 100 to <page_number>*100      
+    
+    Arguments:
+        page_number {int} -- The pagenumber
+    
+    Returns:
+        html
+    """
+
     return render_template(
         "texts.html",
         texts=requests.get(
@@ -382,6 +473,12 @@ def texts_frontend(page_number):
 
 @app.route("/data-checker", methods=["GET"])
 def data_checker():
+    """simple page, where you get a randomly selected text-document and you need to annotate it. 
+    
+    Returns:
+        html
+    """
+
     this_text = requests.get("http://{}:{}/api/get_random_text".format(API_HOST, API_PORT)).json()[
         0
     ]
@@ -395,6 +492,12 @@ def data_checker():
 
 @app.route("/add-data", methods=["GET"])
 def add_data():
+    """Frontend for adding text-documents by providing categories and data/description
+    
+    Returns:
+        html
+    """
+
     return render_template("add_data.html")
 
 
@@ -410,7 +513,16 @@ def change_data():
 
 
 @app.route("/change-data/<text_id>", methods=["GET"])
-def change_data_with_id(text_id):
+def change_data_with_id(text_id: str):
+    """change the categories of a text document given a id
+    
+    Arguments:
+        text_id {str} -- the text_id provided by mongo_db
+    
+    Returns:
+        html
+    """
+
     this_text = requests.get("http://{}:{}/api/text/{}".format(API_HOST, API_PORT, text_id)).json()
     return render_template(
         "change_data.html",
@@ -422,11 +534,23 @@ def change_data_with_id(text_id):
 
 @app.route("/new-model", methods=["GET"])
 def new_model_frontend():
+    """Frontend for creating new models
+    
+    Returns:
+        html
+    """
+
     return render_template("new_model.html")
 
 
 @app.route("/models", methods=["GET"])
 def models_frontend():
+    """Frontend for viewing all trained models and their performances
+    
+    Returns:
+        html
+    """
+
     return render_template(
         "models.html",
         models=requests.get("http://{}:{}/api/models".format(API_HOST, API_PORT)).json(),

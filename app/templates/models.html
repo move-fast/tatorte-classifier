@@ -28,20 +28,23 @@
         }
     </style>
     {%  for i in models %}
-    <a href="/api/model/{{ i['model_url'] }}">
-        <div class="text-div">
-            <div style="float:left; width:30%">
-                <p>Train acc: {{  i["performance_data"]["train_acc"]  }}</p>
-                <p>Test acc:{{  i["performance_data"]["test_acc"]  }}</p>
-                <span style="font-size: 9px">{{ i["error_message"] }}</span>
+    <div style="margin: 1px 1px 1px 1px; display: inline-block;">
+        <a style="width: 90%; float: left;" href="/api/model/{{ i['model_url'] }}">
+            <div class="text-div">
+                <div style="float:left; width:30%">
+                    <p>Train acc: {{  i["performance_data"]["train_acc"]  }}</p>
+                    <p>Test acc:{{  i["performance_data"]["test_acc"]  }}</p>
+                    <span style="font-size: 9px">{{ i["error_message"] }}</span>
+                </div>
+                <div style="float: right; width: 70%">
+                    <p>{{  i["metadata"]  }}</p>
+                    <span style="font-size: 9px">{{ i["model_url"] }}</span>
+                </div>
             </div>
-            <div style="float: right; width: 70%">
-                <p>{{  i["metadata"]  }}</p>
-                <span style="font-size: 9px">{{ i["model_url"] }}</span>
-            </div>
-
-        </div>
-    </a>
+        </a>
+        <a style="float: right;" class="btn-floating btn-large waves-effect waves-light blue"
+            href="/api/change_model/{{ i['model_url'] }}">Use</a>
+    </div>
     <hr>
     {%  endfor  %}
 
