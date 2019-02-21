@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <title>Models</title>
+</head>
+
+<body>
+    <h1>Models</h1>
+    <style>
+        body {
+            padding: 2em
+        }
+
+        .text-div {
+            margin: 1em 2em 1em 2em;
+            display: inline-block;
+            width: calc(100% - 4em);
+        }
+
+        a {
+            color: inherit;
+        }
+    </style>
+    {%  for i in models %}
+    <a href="/api/model/{{ i['model_url'] }}">
+        <div class="text-div">
+            <div style="float:left; width:30%">
+                <p>Train acc: {{  i["performance_data"]["train_acc"]  }}</p>
+                <p>Test acc:{{  i["performance_data"]["test_acc"]  }}</p>
+                <span style="font-size: 9px">{{ i["error_message"] }}</span>
+            </div>
+            <div style="float: right; width: 70%">
+                <p>{{  i["metadata"]  }}</p>
+                <span style="font-size: 9px">{{ i["model_url"] }}</span>
+            </div>
+
+        </div>
+    </a>
+    <hr>
+    {%  endfor  %}
+
+</body>
+
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Data Checker</title>
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+</head>
+
+<body>
+    <style>
+        .wrap {
+            display: flex;
+            align-items: center
+        }
+
+        body {
+            padding: 2em;
+        }
+    </style>
+    <script>
+        function getAllIndexes(arr, val) {
+            var indexes = [], i = -1;
+            while ((i = arr.indexOf(val, i + 1)) != -1) {
+                indexes.push(i);
+            }
+            return indexes;
+        }
+
+
+        function delete_and_reload() {
+            const Http = new XMLHttpRequest();
+            const url = '/api/delete_text/{{  text_id  }}';
+            Http.open("GET", url);
+            Http.send();
+            Http.onreadystatechange = (e) => {
+                console.log(Http.responseText)
+            }
+            location.reload()
+        }
+        function submit_and_reload() {
+            const url = '/api/change_categories';
+            checkbox_1 = document.getElementById("checkbox-1").checked
+            checkbox_2 = document.getElementById("checkbox-2").checked
+            checkbox_3 = document.getElementById("checkbox-3").checked
+            checkbox_4 = document.getElementById("checkbox-4").checked
+            checkbox_5 = document.getElementById("checkbox-5").checked
+            if (checkbox_1 || checkbox_2 || checkbox_3 || checkbox_4 || checkbox_5) {
+                categories = getAllIndexes([checkbox_1, checkbox_2, checkbox_3, checkbox_4, checkbox_5], true)
+                const Http = new XMLHttpRequest();
+                Http.open("POST", url)
+                Http.setRequestHeader("Content-type", "application/json")
+                Http.send('{"id": "{{  text_id  }}", "categories": [' + categories + ']}')
+                location.reload()
+            } else {
+                alert("At least one checkbox has to be checked")
+            }
+        }
+    </script>
+    <h1>Data Checker</h1>
+    <p style="text-align: center; font-size: 25px;">{{  data  }}</p>
+    <p>Current Categories: {{  categories }}</p>
+
+    <form>
+        <div>
+            <p>
+                <label>
+                    <input type="checkbox" id="checkbox-1" />
+                    <span>Feuer</span>
+                </label>
+            </p>
+            <p>
+                <label>
+                    <input type="checkbox" id="checkbox-2" />
+                    <span>Mord</span>
+                </label>
+            </p>
+            <p>
+                <label>
+                    <input type="checkbox" id="checkbox-3" />
+                    <span>Überfall/Körperverletzung</span>
+                </label>
+            </p>
+            <p>
+                <label>
+                    <input type="checkbox" id="checkbox-4" />
+                    <span>Unfall</span>
+                </label>
+            </p>
+            <p>
+                <label>
+                    <input type="checkbox" id="checkbox-5" />
+                    <span>Drogen</span>
+                </label>
+            </p>
+            <input style="color: #eee" class="btn waves-effect waves-light" type="button" value="Submit"
+                onclick="submit_and_reload()">
+        </div>
+    </form>
+    <br>
+    <button class="btn waves-effect waves-light red" onclick="delete_and_reload()">Delete</button>
+</body>
+
+</html>

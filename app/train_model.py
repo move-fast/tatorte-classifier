@@ -1,19 +1,16 @@
-from model import Model
-from preprocess_data import DataPreprocessor
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, confusion_matrix
-import dill
-import numpy as np
-import time
 import os
-from configuration import MODEL_DIR, DATA_X_PATH, DATA_Y_PATH
+import time
+import uuid
 from typing import Callable, Tuple
 
+import dill
+import numpy as np
+from sklearn.metrics import accuracy_score, confusion_matrix
+from sklearn.model_selection import train_test_split
 
-def load_data():
-    x = np.load(DATA_X_PATH)
-    y = np.load(DATA_Y_PATH)
-    return x, y
+from configuration import MODEL_DIR
+from model import Model
+from preprocess_data import DataPreprocessor
 
 
 def _change_category(
@@ -42,16 +39,6 @@ def clean_data(x: np.ndarray, y: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     #   3 - Überfall/Körperverletzung
     #   4 - Unfall
     #   5 - Drogen
-    # Delete "dirty" categories 7, 8, 10
-    x = x[np.intersect1d(np.where(y != 7), np.intersect1d(np.where(y != 8), np.where(y != 10)))]
-    y = y[np.intersect1d(np.where(y != 7), np.intersect1d(np.where(y != 8), np.where(y != 10)))]
-    # combine categories 3, 4, 5
-    y[np.where(y == 4)[0]] = 3
-    y[np.where(y == 5)[0]] = 3
-    # change indexes
-    y[np.where(y == 6)[0]] = 4
-    y[np.where(y == 9)[0]] = 5
-
     # automate Data cleaning
     str_contain = np.vectorize(lambda x: "verkehrskontroll" in x.lower())
     y = _change_category(x, y, 5, 4, str_contain)
@@ -101,47 +88,51 @@ def train_model(x_train: np.ndarray, y_train: np.ndarray, model: Model) -> Model
 
 def evaluate_model(
     x_train: np.ndarray, x_test: np.ndarray, y_train: np.ndarray, y_test: np.ndarray, model: Model
-) -> None:
-    print("Train acc:", accuracy_score(y_train, model(x_train)))
-    print("Test acc:", accuracy_score(y_test, model(x_test)))
-    print("Confusion Matrix:\n", confusion_matrix(y_test, model(x_test)))
-    _print_top10_features(
-        model.pipeline.named_steps["vect"],
-        model.pipeline.named_steps["clf"],
-        ["Feuer", "Mord", "Überfall/Körperverletzung", "Unfall", "Drogen"],
+) -> Tuple:
+    return (
+        accuracy_score(y_train, model(x_train)),
+        accuracy_score(y_test, model(x_test)),
+        confusion_matrix(y_test, model(x_test)),
     )
 
 
-def save_model(model):
-    dill.dump(model, open(os.path.join(MODEL_DIR, "model-{}.sav".format(time.time())), "wb"))
+def save_model(model, model_id):
+    # id = uuid.uuid4().hex[:8]
+    print(os.path.join(MODEL_DIR, "model-{}.sav".format(model_id)))
+    dill.dump(model, open(os.path.join(MODEL_DIR, "model-{}.sav".format(model_id)), "wb"))
+    # return id
 
 
-def main(clf, clf_params, vect_params):
-    print("Loading Data...", end=" ")
-    x, y = load_data()
-    print("Finished!")
-    print("Preprocessing Data...")
-    print("  Cleaning Data")
+def main(x, y, clf, clf_params, vect_params, test_size=0.3, values_per_category=900):
+    # print("Loading Data...", end=" ")
+    # print("Finished!")
+    # print("Preprocessing Data...")
+    # print("  Cleaning Data")
     x, y = clean_data(x, y)
-    print("  Balancing Data")
-    x, y = balance_data(x, y, 900)
-    print("  Splitting Data")
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3)
-    print("Finished!")
+    # print("  Balancing Data")
+    x, y = balance_data(x, y, values_per_category)
+    # print("  Splitting Data")
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=test_size)
+    # print("Finished!")
     model = create_model(clf, clf_params, vect_params)
-    print("Created Model")
-    print("Training Model...", end=" ")
+    # print("Created Model")
+    # print("Training Model...", end=" ")
     model = train_model(x_train, y_train, model)
-    print("Finished!")
-    evaluate_model(x_train, x_test, y_train, y_test, model)
-    save_model(model)
-    print("Saved Model")
-    return model
+    # print("Finished!")
+    train_acc, test_acc, conf_matrix = evaluate_model(x_train, x_test, y_train, y_test, model)
+    # id = save_model(model)
+    print("Finished Training")
+    # print("Saved Model")
+    return model, train_acc, test_acc, conf_matrix
 
 
 if __name__ == "__main__":
-    main(
-        "sgd",
-        {"alpha": 1e-6, "max_iter": 100, "loss": "log", "penalty": "l2"},
-        {"ngram_range": (1, 4)},
+    print(
+        main(
+            np.load("./data/data_x.npy"),
+            np.load("./data/data_y.npy"),
+            "sgd",
+            {"alpha": 1e-6, "max_iter": 100, "loss": "log", "penalty": "l2"},
+            {"ngram_range": (1, 4)},
+        )
     )
