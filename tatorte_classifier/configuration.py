@@ -11,9 +11,7 @@ MIN_PREDICTING_PROBA = float(os.getenv("MIN_PREDICTING_PROBA"))
 
 API_HOST: str = str(os.getenv("API_HOST"))
 API_PORT: int = int(os.getenv("API_PORT"))
+API_DEBUG: bool = bool(os.getenv("API_DEBUG"))
 
-MONGO_AUTH: str = str(os.getenv("MONGO_AUTH"))
-MONGO_URL: str = str(os.getenv("MONGO_URL"))
-MONGO_PORT: str = str(os.getenv("MONGO_PORT"))
-
+MONGODB_URI: str = str(os.getenv("MONGODB_URI"))
 TEMPLATE_FOLDER: str = str(os.getenv("TEMPLATE_FOLDER"))

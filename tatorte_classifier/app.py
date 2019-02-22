@@ -8,34 +8,28 @@ import numpy as np
 import pymongo
 from bson.json_util import dumps
 from bson.objectid import ObjectId
-from flask import Flask, jsonify, render_template, request, send_file, url_for
+from flask import Flask, jsonify, render_template, request, send_file
 from werkzeug.exceptions import BadRequest
 
 from configuration import (
     API_HOST,
     API_PORT,
-    CURRENT_MODEL_PATH,
     MODEL_DIR,
-    MONGO_PORT,
-    MONGO_URL,
-    MONGO_AUTH,
+    CURRENT_MODEL_PATH,
+    MONGODB_URI,
     TEMPLATE_FOLDER,
+    API_DEBUG,
 )
 from get_prediction import get_predictions, load_model
 from preprocess_data import DataPreprocessor
 from train_model import main as train_model
 from train_model import save_model
 
-# TODO: Change function names
-# TODO: Make stuff more consistent
 
 app = Flask("tatorte_api", template_folder=TEMPLATE_FOLDER)
 model = load_model()
 preprocessor = DataPreprocessor()
-client = pymongo.MongoClient(
-    os.getenv("MONGODB_URI")
-    # "mongodb://{}{}:{}/tatorte-db".format(MONGO_AUTH, MONGO_URL, MONGO_PORT)
-)
+client = pymongo.MongoClient(MONGODB_URI)
 db = client.get_database()  # ["tatorte-db"]
 texts = db["texts"]
 texts.create_index([("data", "text")])
@@ -270,7 +264,7 @@ def new_model():
             this_model, train_acc, test_acc, _ = train_model(x, y, **request_json)
             this_id = uuid.uuid4().hex[:8]
             save_model(this_model, str(this_id))
-            model_id = models.insert_one(
+            models.insert_one(
                 {
                     "time_created": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                     "model_url": "model-{}.sav".format(this_id),
@@ -284,7 +278,7 @@ def new_model():
                     },
                     "error_message": "",
                 }
-            ).inserted_id
+            )
         except Exception as err:
             models.insert_one(
                 {
@@ -563,4 +557,4 @@ def models_frontend():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host=API_HOST, port=API_PORT)
+    app.run(debug=API_DEBUG, host=API_HOST, port=API_PORT)
