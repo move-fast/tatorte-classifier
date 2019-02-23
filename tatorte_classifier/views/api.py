@@ -14,12 +14,13 @@ from tatorte_classifier.get_prediction import get_predictions, load_model
 from tatorte_classifier.preprocess_data import DataPreprocessor
 from tatorte_classifier.train_model import main as train_model
 from tatorte_classifier.train_model import save_model
+from tatorte_classifier.model import Model
 
 bp = Blueprint("api", __name__, url_prefix="/api")
 try:
     model = load_model()
-except:
-    model = None
+except:  # If their is no model at the moment
+    model = Model("sgd", {}, {})
 preprocessor = DataPreprocessor()
 client = pymongo.MongoClient(MONGODB_URI)
 db = client.get_database()  # ["tatorte-db"]
