@@ -1,20 +1,23 @@
 import datetime
+import os
 import uuid
 from threading import Thread
-import os
+from typing import Union
 
+
+import numpy as np
 import pymongo
 from bson.json_util import dumps
 from bson.objectid import ObjectId
-from flask import Blueprint, request, send_file, jsonify
-import numpy as np
-from configuration import CURRENT_MODEL_PATH, MODEL_DIR, MONGODB_URI
+from flask import Blueprint, jsonify, request, send_file
 from werkzeug.exceptions import BadRequest
+
+from configuration import CURRENT_MODEL_PATH, MODEL_DIR, MONGODB_URI
 from tatorte_classifier.get_prediction import get_predictions, load_model
+from tatorte_classifier.model import Model
 from tatorte_classifier.preprocess_data import DataPreprocessor
 from tatorte_classifier.train_model import main as train_model
 from tatorte_classifier.train_model import save_model
-from tatorte_classifier.model import Model
 
 bp = Blueprint("api", __name__, url_prefix="/api")
 try:
@@ -30,7 +33,7 @@ models = db["models"]
 
 
 @bp.route("/get_prediction", methods=["POST"])
-def get_preds():
+def get_preds() -> Union[str, BadRequest]:
     """Get predictions and probabilitys
     Input:
         {
@@ -66,7 +69,7 @@ def get_preds():
 
 
 @bp.route("/categories", methods=["GET"])
-def get_key():
+def get_key() -> str:
     """Returns the key for translating class_numbers to text
 
     Returns:
@@ -85,16 +88,15 @@ def get_key():
 
 
 # Data Api
-@bp.route("/texts/start=<start>&end=<end>", methods=["GET"])
-def get_texts(start, end):
+@bp.route("/texts/start=<int:start>&end=<int:end>", methods=["GET"])
+def get_texts(start: int, end: int) -> Union[str, BadRequest]:
     """
-    
     Returns:
         [
             {
                 "_id": {
                     "$oid": "5c6c1b2573cda500b254404c"
-                }, 
+                },
                 "data": "This is a test. Number 2",
                 "time_created": "2019-02-19 15:05:09",
                 "time_modified": "2019-02-19 15:18:53",
@@ -102,18 +104,20 @@ def get_texts(start, end):
             }, ...
         ]
     """
-
-    return dumps(texts.find().sort("time_modified", pymongo.DESCENDING)[int(start) : int(end)])
+    try:
+        return dumps(texts.find().sort("time_modified", pymongo.DESCENDING)[start:end])
+    except Exception as err:
+        return BadRequest(str(err))
 
 
 @bp.route("/text/<text_id>", methods=["GET"])
-def get_text(text_id):
+def get_text(text_id: str) -> Union[str, BadRequest]:
     """
     Returns:
         {
             "_id": {
                 "$oid": "5c6c1b2573cda500b254404c"
-            }, 
+            },
             "data": "This is a test. Number 2",
             "time_created": "2019-02-19 15:05:09",
             "time_modified": "2019-02-19 15:18:53",
@@ -127,14 +131,14 @@ def get_text(text_id):
 
 
 @bp.route("/create_text", methods=["POST"])
-def create_text():
+def create_text() -> Union[str, BadRequest]:
     """
     Input:
         {
             "data": "This is a test",
             "categories": [3, 2]
         }
-    
+
     Returns:
         <id>
     """
@@ -154,14 +158,14 @@ def create_text():
 
 
 @bp.route("/change_categories", methods=["POST"])
-def change_text():
+def change_text() -> Union[str, BadRequest]:
     """
     Input:
         {
             "categories": [3, 2],
             "id": hd897e9289a
         }
-        
+
     Returns:
         <id>
     """
@@ -184,7 +188,7 @@ def change_text():
 
 
 @bp.route("/delete_text/<text_id>")
-def delete_text(text_id: str):
+def delete_text(text_id: str) -> Union[str, BadRequest]:
     """Deletes text document with id == <text_id>
     """
 
@@ -196,9 +200,9 @@ def delete_text(text_id: str):
 
 
 @bp.route("/get_texts_count", methods=["GET"])
-def get_n_texts():
+def get_n_texts() -> str:
     """Returns the number of text documents in the database
-    
+
     Returns:
         int -- the number of text documents in the database
     """
@@ -207,14 +211,14 @@ def get_n_texts():
 
 
 @bp.route("/get_random_text", methods=["GET"])
-def get_random_text():
+def get_random_text() -> str:
     """Gets a randomly selected text out of the text database
-    
+
     Returns:
         {
             "_id": {
                 "$oid": "5c6c1b2573cda500b254404c"
-            }, 
+            },
             "data": "This is a test. Number 2",
             "time_created": "2019-02-19 15:05:09",
             "time_modified": "2019-02-19 15:18:53",
@@ -227,15 +231,15 @@ def get_random_text():
 
 # Model API
 @bp.route("/train_model", methods=["POST"])
-def new_model():
+def new_model() -> Union[str, BadRequest]:
     """
     Input:
         {
             "clf": "sgd",
             "clf_params": {
                 "alpha": 1e-6,
-                "max_iter": 100, 
-                "loss": "log", 
+                "max_iter": 100,
+                "loss": "log",
                 "penalty": "l2"
             },
             "vect_params": {
@@ -245,12 +249,13 @@ def new_model():
             "values_per_category": 900
         }
     Returns:
-        Error message or "Now training model". To gvet access to the model just class /api/models and look for your model
+        Error message or "Now training model". To get access to the model just call /api/models
+        and look for your model or navigate on the gui to the "models" sections
     """
 
     request_json = request.get_json()
 
-    def train(x, y):
+    def train(x: np.ndarray, y: np.ndarray) -> None:
         try:
             this_model, train_acc, test_acc, _ = train_model(x, y, **request_json)
             this_id = uuid.uuid4().hex[:8]
@@ -297,12 +302,12 @@ def new_model():
 
 
 @bp.route("/change_model/<model_name>", methods=["GET"])
-def change_model(model_name: str):
+def change_model(model_name: str) -> Union[str, BadRequest]:
     """changes the current model, which is used for /api/get_predictions
-    
+
     Arguments:
         model_name {str} -- the name of the model (model-<id>.sav)
-    
+
     Returns:
         error message or success message
     """
@@ -321,9 +326,9 @@ def change_model(model_name: str):
 
 
 @bp.route("/models", methods=["GET"])
-def get_models():
+def get_models() -> str:
     """Get a list of metadata, performance-data for all the models
-    
+
     Returns:
         [
             {
@@ -364,7 +369,7 @@ def get_models():
 @bp.route("/model/<model_name>", methods=["GET"])
 def get_model(model_name):
     """returns model .sav file
-    
+
     Returns:
         file: MODEL_DIR/model_name
     """
@@ -376,16 +381,16 @@ def get_model(model_name):
 
 
 @bp.route("/get_model_options/<model_name>")
-def get_model_options(model_name):
+def get_model_options(model_name: str) -> Union[str, BadRequest]:
     """Get list of params, which can be passed to different classifiers
-    
+
     Arguments:
         model_name {str} -- The name of the classifier. [sgd, svm, nn]
-    
+
     Returns for Example (sgd):
         {
-            "loss": ["log", "modified_huber", "squared_hinge", "perceptron"], # list means that there should be a dropdown selector
-            "penalty": ["l2", "l1", "elastic_net"], 
+            "loss": ["log", "modified_huber", "squared_hinge", "perceptron"], # list means, that there should be a dropdown selector
+            "penalty": ["l2", "l1", "elastic_net"],
             "alpha": 0.0001, # number means that there should be a number input
             "max_iter": 100,
         }

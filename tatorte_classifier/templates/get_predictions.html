@@ -7,16 +7,41 @@
 
     <!-- Compiled and minified JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+    <!-- Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
     <title>Add Data</title>
     <style>
         body {
             padding: 2em;
+        }
+
+        #predictions_graph {
+            height: 30em;
         }
     </style>
 </head>
 
 <body>
     <script>
+        var layout = {
+            title: 'Categories:',
+            font: { size: 18 }
+        };
+
+
+        var number2str;
+        xhr = new XMLHttpRequest();
+        var url = "/api/categories";
+        xhr.open("GET", url);
+        xhr.send()
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+                console.log(xhr.responseText)
+                number2str = JSON.parse(xhr.responseText)
+            }
+        }
         function get_predictions() {
             xhr = new XMLHttpRequest();
             var url = "/api/get_prediction";
@@ -24,21 +49,40 @@
             xhr.setRequestHeader("Content-type", "application/json");
             xhr.onreadystatechange = function () {
                 if (xhr.readyState == 4 && xhr.status == 200) {
+                    console.log(number2str)
                     console.log(xhr.responseText)
-                    document.getElementById("predictions").innerHTML = xhr.responseText
+                    x = [];
+                    y = [];
+                    predictions = JSON.parse(xhr.responseText)["predictions"]
+                    for (i of predictions) {
+                        x.push(number2str[i["category"]]["name"])
+                        y.push(i["probability"])
+                    }
+                    data = [{
+                        type: "bar",
+                        x: x,
+                        y: y,
+                        marker: {
+                            color: "#2BBBAD",
+                            line: {
+                                width: 0.5
+                            }
+                        }
+                    }]
+                    Plotly.newPlot('predictions_graph', data, layout, { responsive: true });
                 }
             }
-            var data = JSON.stringify({ "data": document.getElementById("data-text").value, "parameters": { "max_categories": 3 } });
+            var data = JSON.stringify({ "data": document.getElementById("data-text").value, "parameters": { "max_categories": 5 } });
             xhr.send(data);
         }
 
 
     </script>
-    <h1>Add Data</h1>
+    <h1>Test Model</h1>
     <form action="">
         <textarea onkeyup="get_predictions()" id="data-text" class="materialize-textarea"></textarea>
     </form>
-    <p id="predictions"></p>
+    <div id="predictions_graph"></div>
 </body>
 
 </html>
