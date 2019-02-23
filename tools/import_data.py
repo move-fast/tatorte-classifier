@@ -1,6 +1,4 @@
-import pymongo
 import numpy as np
-import datetime
 import requests
 import tqdm
 

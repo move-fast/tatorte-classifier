@@ -5,11 +5,11 @@ services:
     restart: always
     build: .
     ports:
-      - "5000:5000"
+      - "80:80"
     links:
       - mongo
     volumes:
-      - "./tatorte_classifier:/app"
+      - "./tatorte_classifier:/tatorte_classifier"
   mongo:
     container_name: mongo
     image: mongo

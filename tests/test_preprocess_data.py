@@ -1,4 +1,4 @@
-from preprocess_data import DataPreprocessor
+from tatorte_classifier.preprocess_data import DataPreprocessor
 
 # TODO: fix import
 preprocessor = DataPreprocessor()

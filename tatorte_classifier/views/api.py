@@ -1,33 +1,25 @@
 import datetime
-import os
 import uuid
 from threading import Thread
-import json
+import os
 
-import numpy as np
 import pymongo
 from bson.json_util import dumps
 from bson.objectid import ObjectId
-from flask import Flask, jsonify, render_template, request, send_file
+from flask import Blueprint, request, send_file, jsonify
+import numpy as np
+from configuration import CURRENT_MODEL_PATH, MODEL_DIR, MONGODB_URI
 from werkzeug.exceptions import BadRequest
+from tatorte_classifier.get_prediction import get_predictions, load_model
+from tatorte_classifier.preprocess_data import DataPreprocessor
+from tatorte_classifier.train_model import main as train_model
+from tatorte_classifier.train_model import save_model
 
-from configuration import (
-    API_HOST,
-    API_PORT,
-    MODEL_DIR,
-    CURRENT_MODEL_PATH,
-    MONGODB_URI,
-    TEMPLATE_FOLDER,
-    API_DEBUG,
-)
-from get_prediction import get_predictions, load_model
-from preprocess_data import DataPreprocessor
-from train_model import main as train_model
-from train_model import save_model
-
-
-app = Flask("tatorte_api", template_folder=TEMPLATE_FOLDER)
-model = load_model()
+bp = Blueprint("api", __name__, url_prefix="/api")
+try:
+    model = load_model()
+except:
+    model = None
 preprocessor = DataPreprocessor()
 client = pymongo.MongoClient(MONGODB_URI)
 db = client.get_database()  # ["tatorte-db"]
@@ -35,10 +27,8 @@ texts = db["texts"]
 texts.create_index([("data", "text")])
 models = db["models"]
 
-#######
-# API #
-#######
-@app.route("/api/get_prediction", methods=["POST"])
+
+@bp.route("/get_prediction", methods=["POST"])
 def get_preds():
     """Get predictions and probabilitys
     Input:
@@ -74,7 +64,7 @@ def get_preds():
         return BadRequest(str(err))
 
 
-@app.route("/api/categories", methods=["GET"])
+@bp.route("/categories", methods=["GET"])
 def get_key():
     """Returns the key for translating class_numbers to text
 
@@ -94,7 +84,7 @@ def get_key():
 
 
 # Data Api
-@app.route("/api/texts/start=<start>&end=<end>", methods=["GET"])
+@bp.route("/texts/start=<start>&end=<end>", methods=["GET"])
 def get_texts(start, end):
     """
     
@@ -115,7 +105,7 @@ def get_texts(start, end):
     return dumps(texts.find().sort("time_modified", pymongo.DESCENDING)[int(start) : int(end)])
 
 
-@app.route("/api/text/<text_id>", methods=["GET"])
+@bp.route("/text/<text_id>", methods=["GET"])
 def get_text(text_id):
     """
     Returns:
@@ -135,7 +125,7 @@ def get_text(text_id):
         return BadRequest(str(err))
 
 
-@app.route("/api/create_text", methods=["POST"])
+@bp.route("/create_text", methods=["POST"])
 def create_text():
     """
     Input:
@@ -162,7 +152,7 @@ def create_text():
         return BadRequest(str(err))
 
 
-@app.route("/api/change_categories", methods=["POST"])
+@bp.route("/change_categories", methods=["POST"])
 def change_text():
     """
     Input:
@@ -192,7 +182,7 @@ def change_text():
         return BadRequest(str(err))
 
 
-@app.route("/api/delete_text/<text_id>")
+@bp.route("/delete_text/<text_id>")
 def delete_text(text_id: str):
     """Deletes text document with id == <text_id>
     """
@@ -204,7 +194,7 @@ def delete_text(text_id: str):
         return BadRequest(str(err))
 
 
-@app.route("/api/get_texts_count", methods=["GET"])
+@bp.route("/get_texts_count", methods=["GET"])
 def get_n_texts():
     """Returns the number of text documents in the database
     
@@ -215,7 +205,7 @@ def get_n_texts():
     return texts.count()
 
 
-@app.route("/api/get_random_text", methods=["GET"])
+@bp.route("/get_random_text", methods=["GET"])
 def get_random_text():
     """Gets a randomly selected text out of the text database
     
@@ -235,7 +225,7 @@ def get_random_text():
 
 
 # Model API
-@app.route("/api/train_model", methods=["POST"])
+@bp.route("/train_model", methods=["POST"])
 def new_model():
     """
     Input:
@@ -305,7 +295,7 @@ def new_model():
         return BadRequest(str(err))
 
 
-@app.route("/api/change_model/<model_name>", methods=["GET"])
+@bp.route("/change_model/<model_name>", methods=["GET"])
 def change_model(model_name: str):
     """changes the current model, which is used for /api/get_predictions
     
@@ -329,7 +319,7 @@ def change_model(model_name: str):
         return BadRequest(str(err))
 
 
-@app.route("/api/models", methods=["GET"])
+@bp.route("/models", methods=["GET"])
 def get_models():
     """Get a list of metadata, performance-data for all the models
     
@@ -370,7 +360,7 @@ def get_models():
     return dumps(models.find().sort("time_created", pymongo.DESCENDING))
 
 
-@app.route("/api/model/<model_name>", methods=["GET"])
+@bp.route("/model/<model_name>", methods=["GET"])
 def get_model(model_name):
     """returns model .sav file
     
@@ -384,7 +374,7 @@ def get_model(model_name):
         return BadRequest(str(err))
 
 
-@app.route("/api/get_model_options/<model_name>")
+@bp.route("/get_model_options/<model_name>")
 def get_model_options(model_name):
     """Get list of params, which can be passed to different classifiers
     
@@ -433,128 +423,3 @@ def get_model_options(model_name):
         )
     else:
         return BadRequest("please choose one of the classifiers: [svm, sgd, nn]")
-
-
-############
-# Frontend #
-############
-@app.route("/", methods=["GET"])
-def index():
-    """Home page with link to all sub-pages. Upper half is Data and the other half is Model
-    """
-
-    return render_template("index.html")
-
-
-@app.route("/texts/<page_number>", methods=["GET"])
-def texts_frontend(page_number: str):
-    """Get texts sorted by modification with pagenumber being results (<page_number> - 1) * 100 to <page_number>*100      
-    
-    Arguments:
-        page_number {int} -- The pagenumber
-    
-    Returns:
-        html
-    """
-
-    return render_template(
-        "texts.html",
-        texts=json.loads(get_texts((int(page_number) - 1) * 100, int(page_number) * 100)),
-        current_page=int(page_number),
-    )
-
-
-@app.route("/data-checker", methods=["GET"])
-def data_checker():
-    """simple page, where you get a randomly selected text-document and you need to annotate it. 
-    
-    Returns:
-        html
-    """
-
-    this_text = json.loads(get_random_text())[0]
-    return render_template(
-        "data-checker.html",
-        text_id=this_text["_id"]["$oid"],
-        data=this_text["data"],
-        categories=this_text["categories"],
-    )
-
-
-@app.route("/add-data", methods=["GET"])
-def add_data():
-    """Frontend for adding text-documents by providing categories and data/description
-    
-    Returns:
-        html
-    """
-
-    return render_template("add_data.html")
-
-
-@app.route("/change-data", methods=["GET"])
-def change_data():
-    return render_template(
-        "change_data.html",
-        default_id="",
-        default_data="",
-        default_categories="",
-        default_vis="hidden",
-    )
-
-
-@app.route("/change-data/<text_id>", methods=["GET"])
-def change_data_with_id(text_id: str):
-    """change the categories of a text document given a id
-    
-    Arguments:
-        text_id {str} -- the text_id provided by mongo_db
-    
-    Returns:
-        html
-    """
-
-    this_text = json.loads(get_text(text_id))
-    return render_template(
-        "change_data.html",
-        default_id=text_id,
-        default_data=this_text["data"],
-        default_categories=this_text["categories"],
-    )
-
-
-@app.route("/new-model", methods=["GET"])
-def new_model_frontend():
-    """Frontend for creating new models
-    
-    Returns:
-        html
-    """
-
-    return render_template("new_model.html")
-
-
-@app.route("/get_predictions", methods=["GET"])
-def get_predictions_frontend():
-    """Frontend for viewing all trained models and their performances
-
-    Returns:
-        html
-    """
-
-    return render_template("get_predictions.html", models=json.loads(get_models()))
-
-
-@app.route("/models", methods=["GET"])
-def models_frontend():
-    """Frontend for viewing all trained models and their performances
-
-    Returns:
-        html
-    """
-
-    return render_template("models.html", models=json.loads(get_models()))
-
-
-if __name__ == "__main__":
-    app.run(debug=API_DEBUG, host=API_HOST, port=API_PORT)

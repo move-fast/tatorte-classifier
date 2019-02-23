@@ -9,8 +9,8 @@ from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.model_selection import train_test_split
 
 from configuration import MODEL_DIR
-from model import Model
-from preprocess_data import DataPreprocessor
+from tatorte_classifier.model import Model
+from tatorte_classifier.preprocess_data import DataPreprocessor
 
 
 def _change_category(
@@ -127,12 +127,12 @@ def main(x, y, clf, clf_params, vect_params, test_size=0.3, values_per_category=
 
 
 if __name__ == "__main__":
-    print(
-        main(
-            np.load("./data/data_x.npy"),
-            np.load("./data/data_y.npy"),
-            "sgd",
-            {"alpha": 1e-6, "max_iter": 100, "loss": "log", "penalty": "l2"},
-            {"ngram_range": (1, 4)},
-        )
+    model, ta, tac, conf = main(
+        np.load("/home/peer/Data/data_x.npy"),
+        np.load("/home/peer/Data/data_y.npy"),
+        "sgd",
+        {"alpha": 1e-6, "max_iter": 100, "loss": "log", "penalty": "l2"},
+        {"ngram_range": (1, 4)},
     )
+    print(ta, tac, conf)
+    save_model(model, "")

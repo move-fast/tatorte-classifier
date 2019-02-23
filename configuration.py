@@ -9,9 +9,21 @@ CURRENT_MODEL_PATH: str = str(os.getenv("CURRENT_MODEL_PATH"))
 MIN_DESC_LEN = int(os.getenv("MIN_DESC_LEN"))
 MIN_PREDICTING_PROBA = float(os.getenv("MIN_PREDICTING_PROBA"))
 
-API_HOST: str = str(os.getenv("API_HOST"))
-API_PORT: int = int(os.getenv("API_PORT"))
-API_DEBUG: bool = bool(os.getenv("API_DEBUG"))
+HOST: str = str(os.getenv("HOST"))
+PORT: str = str(os.getenv("PORT"))
 
 MONGODB_URI: str = str(os.getenv("MONGODB_URI"))
 TEMPLATE_FOLDER: str = str(os.getenv("TEMPLATE_FOLDER"))
+FLASK_MODE: str = str(os.getenv("FLASK_MODE"))
+
+# Flask conf
+class Config:
+    DEBUG = False
+    TESTING = False
+
+
+class DevelopementConfig(Config):
+    DEBUG = True
+
+
+ProductionConfig = Config  # At the moment nothing differs to normal config

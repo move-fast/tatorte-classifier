@@ -21,7 +21,7 @@ import logging
 import numpy as np
 
 from configuration import CURRENT_MODEL_PATH, MIN_DESC_LEN, MIN_PREDICTING_PROBA
-from model import Model
+from tatorte_classifier.model import Model
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ def load_model() -> Model:
     if os.path.isfile(CURRENT_MODEL_PATH):
         model = dill.load(open(CURRENT_MODEL_PATH, "rb"))
     else:
-        logger.error(f'File {CURRENT_MODEL_PATH} does not exist')
+        logger.error(f"File {CURRENT_MODEL_PATH} does not exist")
     return model
 
 
@@ -83,7 +83,7 @@ def _predict_classes(desc: np.ndarray, model: Model, n_preds: int) -> np.ndarray
 # ----------------------
 
 
-def get_predictions(desc: np.ndarray, model, n_classes: int) -> np.ndarray:
+def get_predictions(desc: np.ndarray, model: Model, n_classes: int) -> np.ndarray:
     """Get the predictions
 
     Arguments:
