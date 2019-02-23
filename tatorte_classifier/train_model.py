@@ -1,6 +1,4 @@
 import os
-import time
-import uuid
 from typing import Callable, Tuple
 
 import dill
@@ -125,14 +123,3 @@ def main(x, y, clf, clf_params, vect_params, test_size=0.3, values_per_category=
     # print("Saved Model")
     return model, train_acc, test_acc, conf_matrix
 
-
-if __name__ == "__main__":
-    model, ta, tac, conf = main(
-        np.load("/home/peer/Data/data_x.npy"),
-        np.load("/home/peer/Data/data_y.npy"),
-        "sgd",
-        {"alpha": 1e-6, "max_iter": 100, "loss": "log", "penalty": "l2"},
-        {"ngram_range": (1, 4)},
-    )
-    print(ta, tac, conf)
-    save_model(model, "")
