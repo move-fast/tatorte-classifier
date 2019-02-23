@@ -81,6 +81,9 @@ def change_data_with_id(text_id: str):
     Returns:
         html
     """
+    this_text = get_text(text_id)
+    if isinstance(this_text, str):
+        return "There is no text with that id"
 
     this_text = json.loads(get_text(text_id))
     return render_template(
