@@ -41,6 +41,7 @@ def load_model() -> Model:
         model = dill.load(open(CURRENT_MODEL_PATH, "rb"))
     else:
         logger.error(f"File {CURRENT_MODEL_PATH} does not exist")
+        model = Model("sgd", {}, {})  # random model if no model exists
     return model
 
 

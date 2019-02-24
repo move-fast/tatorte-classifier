@@ -21,10 +21,7 @@ from tatorte_classifier.train_model import main as train_model
 from tatorte_classifier.train_model import save_model
 
 bp = Blueprint("api", __name__, url_prefix="/api")
-try:
-    model = load_model()
-except:  # If their is no model at the moment
-    model = Model("sgd", {}, {})
+model = load_model()
 preprocessor = DataPreprocessor()
 client = pymongo.MongoClient(MONGODB_URI)
 db = client.get_database()  # ["tatorte-db"]
