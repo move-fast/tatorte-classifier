@@ -3,8 +3,7 @@ import os
 import uuid
 from threading import Thread
 from typing import Union
-import sys
-
+import logging
 
 import numpy as np
 import pymongo
@@ -14,13 +13,16 @@ from flask import Blueprint, jsonify, request, send_file
 from werkzeug.exceptions import BadRequest
 
 from configuration import CURRENT_MODEL_PATH, MODEL_DIR, MONGODB_URI
-from tatorte_classifier.get_prediction import get_predictions, load_model
-from tatorte_classifier.model import Model
-from tatorte_classifier.preprocess_data import DataPreprocessor
-from tatorte_classifier.train_model import main as train_model
-from tatorte_classifier.train_model import save_model
+from tatorte_classifier.api.get_prediction import get_predictions, load_model
+from tatorte_classifier.api.preprocess_data import DataPreprocessor
+from tatorte_classifier.api.train_model import main as train_model
+from tatorte_classifier.api.train_model import save_model
+from tatorte_classifier.create_logger import create_logger
 
 bp = Blueprint("api", __name__, url_prefix="/api")
+
+logger = create_logger(__name__)
+
 model = load_model()
 preprocessor = DataPreprocessor()
 client = pymongo.MongoClient(MONGODB_URI)
@@ -63,6 +65,7 @@ def get_preds() -> Union[str, BadRequest]:
         preds = [{"category": pred_idx, "probability": pred} for pred_idx, pred in preds]
         return jsonify({"predictions": preds})
     except Exception as err:
+        logger.error(str(err))
         return BadRequest(str(err))
 
 
@@ -105,6 +108,7 @@ def get_texts(start: int, end: int) -> Union[str, BadRequest]:
     try:
         return dumps(texts.find().sort("time_modified", pymongo.DESCENDING)[start:end])
     except Exception as err:
+        logger.error(str(err))
         return BadRequest(str(err))
 
 
@@ -125,6 +129,7 @@ def get_text(text_id: str) -> Union[str, BadRequest]:
     try:
         return dumps(texts.find_one({"_id": ObjectId(text_id)}))
     except Exception as err:
+        logger.error(str(err))
         return BadRequest(str(err))
 
 
@@ -152,6 +157,7 @@ def create_text() -> Union[str, BadRequest]:
         text_id = texts.insert_one(text).inserted_id
         return str(text_id)
     except Exception as err:
+        logger.error(str(err))
         return BadRequest(str(err))
 
 
@@ -182,6 +188,7 @@ def change_text() -> Union[str, BadRequest]:
         )
         return jsonify({"success": True})
     except Exception as err:
+        logger.error(str(err))
         return BadRequest(str(err))
 
 
@@ -194,6 +201,7 @@ def delete_text(text_id: str) -> Union[str, BadRequest]:
         texts.delete_one({"_id": ObjectId(text_id)})
         return jsonify({"success": True})
     except Exception as err:
+        logger.error(str(err))
         return BadRequest(str(err))
 
 
@@ -274,6 +282,7 @@ def new_model() -> Union[str, BadRequest]:
                 }
             )
         except Exception as err:
+            logger.error(str(err))
             models.insert_one(
                 {
                     "time_created": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -296,6 +305,7 @@ def new_model() -> Union[str, BadRequest]:
         thread.start()
         return "Now training Model"
     except Exception as err:
+        logger.error(str(err))
         return BadRequest(str(err))
 
 
@@ -320,6 +330,7 @@ def change_model(model_name: str) -> Union[str, BadRequest]:
         model = load_model()
         return jsonify({"success": True})
     except Exception as err:
+        logger.error(str(err))
         return BadRequest(str(err))
 
 
@@ -375,6 +386,7 @@ def get_model(model_name):
     try:
         return send_file("{}/{}".format(MODEL_DIR, model_name), attachment_filename=model_name)
     except Exception as err:
+        logger.error(str(err))
         return BadRequest(str(err))
 
 
@@ -426,4 +438,5 @@ def get_model_options(model_name: str) -> Union[str, BadRequest]:
             }
         )
     else:
+        logger.info("/api/get_model_options got unexpected Input")
         return BadRequest("please choose one of the classifiers: [svm, sgd, nn]")

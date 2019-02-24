@@ -17,13 +17,13 @@ Versions:
 import os
 
 import dill
-import logging
 import numpy as np
 
 from configuration import CURRENT_MODEL_PATH, MIN_DESC_LEN, MIN_PREDICTING_PROBA
-from tatorte_classifier.model import Model
+from tatorte_classifier.api.model import Model
+from tatorte_classifier.create_logger import create_logger
 
-logger = logging.getLogger(__name__)
+logger = create_logger(__name__)
 
 
 # --------------------------------
@@ -40,7 +40,7 @@ def load_model() -> Model:
     if os.path.isfile(CURRENT_MODEL_PATH):
         model = dill.load(open(CURRENT_MODEL_PATH, "rb"))
     else:
-        logger.error(f"File {CURRENT_MODEL_PATH} does not exist")
+        logger.warning(f"File {CURRENT_MODEL_PATH} does not exist")
         model = Model("sgd", {}, {})  # random model if no model exists
     return model
 

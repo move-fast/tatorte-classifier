@@ -7,8 +7,8 @@ from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.model_selection import train_test_split
 
 from configuration import MODEL_DIR
-from tatorte_classifier.model import Model
-from tatorte_classifier.preprocess_data import DataPreprocessor
+from tatorte_classifier.api.model import Model
+from tatorte_classifier.api.preprocess_data import DataPreprocessor
 
 
 def _change_category(

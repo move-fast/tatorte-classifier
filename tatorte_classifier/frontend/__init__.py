@@ -3,7 +3,7 @@ import json
 from flask import Blueprint, render_template
 
 from configuration import TEMPLATE_FOLDER
-from tatorte_classifier.views.api import get_models, get_random_text, get_text, get_texts
+from tatorte_classifier.api import get_models, get_random_text, get_text, get_texts
 
 bp = Blueprint("frontend", __name__, template_folder=TEMPLATE_FOLDER, url_prefix="/")
 

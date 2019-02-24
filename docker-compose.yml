@@ -9,7 +9,7 @@ services:
     links:
       - mongo
     volumes:
-      - "./tatorte_classifier:/tatorte_classifier"
+      - "./tatorte_classifier:/app/tatorte_classifier"
   mongo:
     container_name: mongo
     image: mongo
