@@ -32,14 +32,13 @@
 
 
         var number2str;
-        xhr = new XMLHttpRequest();
+        Http = new XMLHttpRequest();
         var url = "/api/categories";
-        xhr.open("GET", url);
-        xhr.send()
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState == 4 && xhr.status == 200) {
-                console.log(xhr.responseText)
-                number2str = JSON.parse(xhr.responseText)
+        Http.open("GET", url);
+        Http.send()
+        Http.onreadystatechange = function () {
+            if (Http.readyState == 4 && Http.status == 200) {
+                number2str = JSON.parse(Http.responseText)
             }
         }
         function get_predictions() {
