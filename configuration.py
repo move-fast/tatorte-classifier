@@ -50,14 +50,6 @@ LOG_FILE: str = str(os.getenv("LOG_FILE"))
 class Config:
     DEBUG = False
     TESTING = False
-    FLASK_LOGGING_EXTRAS = {
-        "BLUEPRINT": {
-            "FORMAT_NAME": "bp",
-            "APP_BLUEPRINT": "<app>",
-            "NO_REQUEST_BLUEPRINT": "<not a request>",
-        },
-        "RESOLVERS": {"categoy": "<unset>", "client": "log_helper.get_client"},
-    }
 
 
 class DevelopementConfig(Config):

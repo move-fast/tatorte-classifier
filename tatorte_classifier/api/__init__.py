@@ -26,9 +26,8 @@ logger = create_logger(__name__)
 model = load_model()
 preprocessor = DataPreprocessor()
 client = pymongo.MongoClient(MONGODB_URI)
-db = client.get_database()  # ["tatorte-db"]
+db = client.get_database()
 texts = db["texts"]
-texts.create_index([("data", "text")])
 models = db["models"]
 
 
@@ -281,6 +280,7 @@ def new_model() -> Union[str, BadRequest]:
                     "error_message": "",
                 }
             )
+            logger.info(f"Trained new model with id: {this_id}")
         except Exception as err:
             logger.error(str(err))
             models.insert_one(
