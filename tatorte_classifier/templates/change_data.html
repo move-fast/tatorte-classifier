@@ -34,8 +34,8 @@
         function delete_and_reload() {
             const Http = new XMLHttpRequest();
             text_id = document.getElementById("id-text").value
-            const url = '/api/delete_text/' + text_id;
-            Http.open("GET", url);
+            const url = '/api/text/' + text_id;
+            Http.open("DELETE", url);
             Http.send();
             window.location.href = "/texts/1"
         }

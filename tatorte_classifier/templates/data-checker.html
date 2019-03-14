@@ -33,8 +33,8 @@
 
         function delete_and_reload() {
             const Http = new XMLHttpRequest();
-            const url = '/api/delete_text/{{  text_id  }}';
-            Http.open("GET", url);
+            const url = '/api/text/{{  text_id  }}';
+            Http.open("DELETE", url);
             Http.send();
             Http.onreadystatechange = (e) => {
                 console.log(Http.responseText)

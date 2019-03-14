@@ -88,7 +88,7 @@ def get_key() -> str:
 
 
 # Data Api
-@bp.route("/texts/start=<int:start>&end=<int:end>", methods=["GET"])
+@bp.route("/text/start=<int:start>&end=<int:end>", methods=["GET"])
 def get_texts(start: int, end: int) -> Union[str, BadRequest]:
     """
     Returns:
@@ -132,7 +132,7 @@ def get_text(text_id: str) -> Union[str, BadRequest]:
         return BadRequest(str(err))
 
 
-@bp.route("/create_text", methods=["POST"])
+@bp.route("/text", methods=["POST"])
 def create_text() -> Union[str, BadRequest]:
     """
     Input:
@@ -160,13 +160,12 @@ def create_text() -> Union[str, BadRequest]:
         return BadRequest(str(err))
 
 
-@bp.route("/change_categories", methods=["POST"])
+@bp.route("/text/<id>", methods=["PATCH"])
 def change_text() -> Union[str, BadRequest]:
     """
     Input:
         {
             "categories": [3, 2],
-            "id": hd897e9289a
         }
 
     Returns:
@@ -191,7 +190,7 @@ def change_text() -> Union[str, BadRequest]:
         return BadRequest(str(err))
 
 
-@bp.route("/delete_text/<text_id>")
+@bp.route("/text/<text_id>", methods=["DELETE"])
 def delete_text(text_id: str) -> Union[str, BadRequest]:
     """Deletes text document with id == <text_id>
     """
@@ -202,17 +201,6 @@ def delete_text(text_id: str) -> Union[str, BadRequest]:
     except Exception as err:
         logger.error(str(err))
         return BadRequest(str(err))
-
-
-@bp.route("/get_texts_count", methods=["GET"])
-def get_n_texts() -> str:
-    """Returns the number of text documents in the database
-
-    Returns:
-        int -- the number of text documents in the database
-    """
-
-    return texts.count()
 
 
 @bp.route("/get_random_text", methods=["GET"])
