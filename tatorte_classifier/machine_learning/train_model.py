@@ -7,8 +7,8 @@ from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.model_selection import train_test_split
 
 from configuration import MODEL_DIR
-from tatorte_classifier.api.model import Model
-from tatorte_classifier.api.preprocess_data import DataPreprocessor
+from tatorte_classifier.machine_learning.model import Model
+from tatorte_classifier.machine_learning.preprocess_data import DataPreprocessor
 
 
 def _change_category(
@@ -79,7 +79,7 @@ def _print_top10_features(vectorizer, clf, class_labels):
         print("%s: %s" % (class_label, " ".join(feature_names[j] for j in top10)))
 
 
-def train_model(x_train: np.ndarray, y_train: np.ndarray, model: Model) -> Model:
+def _train_model(x_train: np.ndarray, y_train: np.ndarray, model: Model) -> Model:
     model.pipeline = model.pipeline.fit(x_train, y_train)
     return model
 
@@ -101,7 +101,7 @@ def save_model(model, model_id):
     # return id
 
 
-def main(x, y, clf, clf_params, vect_params, test_size=0.3, values_per_category=900):
+def train_model(x, y, clf, clf_params, vect_params, test_size=0.3, values_per_category=900):
     # print("Loading Data...", end=" ")
     # print("Finished!")
     # print("Preprocessing Data...")
@@ -115,7 +115,7 @@ def main(x, y, clf, clf_params, vect_params, test_size=0.3, values_per_category=
     model = create_model(clf, clf_params, vect_params)
     # print("Created Model")
     # print("Training Model...", end=" ")
-    model = train_model(x_train, y_train, model)
+    model = _train_model(x_train, y_train, model)
     # print("Finished!")
     train_acc, test_acc, conf_matrix = evaluate_model(x_train, x_test, y_train, y_test, model)
     # id = save_model(model)

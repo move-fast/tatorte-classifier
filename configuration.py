@@ -1,6 +1,28 @@
 import os
 from dotenv import load_dotenv
 import logging
+import logging.config
+
+LOG_FILE: str = str(os.getenv("LOG_FILE"))
+LOGGING_CONFIG = {
+    "version": 1,
+    "formatters": {
+        "standard": {"format": "[%(asctime)s] [%(name)s] [%(levelname)s] - %(message)s"}
+    },
+    "handlers": {
+        "file": {
+            "class": "logging.FileHandler",
+            "level": "DEBUG",
+            "filename": LOG_FILE,
+            "mode": "w",
+            "formatter": "standard",
+        },
+        "console": {"class": "logging.StreamHandler", "level": "WARNING"},
+    },
+    "loggers": {"": {"handlers": ["file", "console"], "level": "DEBUG"}},
+}
+
+logging.config.dictConfig(LOGGING_CONFIG)
 
 logger = logging.getLogger(__name__)
 
@@ -38,13 +60,13 @@ if "TEMPLATE_FOLDER" not in os.environ:
     logger.warning("TEMPLATE_FOLDER is not set")
 TEMPLATE_FOLDER: str = str(os.getenv("TEMPLATE_FOLDER"))
 
+if "STATIC_FOLDER" not in os.environ:
+    logger.warning("STATIC_FOLDER is not set")
+STATIC_FOLDER: str = str(os.getenv("STATIC_FOLDER"))
+
 if "FLASK_MODE" not in os.environ:
     logger.warning("FLASK_MODE is not set")
 FLASK_MODE: str = str(os.getenv("FLASK_MODE"))
-
-if "LOG_FILE" not in os.environ:
-    logger.warning("LOG_FILE is not set")
-LOG_FILE: str = str(os.getenv("LOG_FILE"))
 
 # Flask conf
 class Config:
@@ -57,3 +79,4 @@ class DevelopementConfig(Config):
 
 
 ProductionConfig = Config  # At the moment nothing differs to normal config
+

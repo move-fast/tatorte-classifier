@@ -10,6 +10,7 @@ services:
       - mongo
     volumes:
       - "./tatorte_classifier:/app/tatorte_classifier"
+      - "./configuration.py:/app/configuration.py"
   mongo:
     container_name: mongo
     image: mongo

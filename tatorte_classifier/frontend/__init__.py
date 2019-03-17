@@ -2,10 +2,18 @@ import json
 
 from flask import Blueprint, render_template
 
-from configuration import TEMPLATE_FOLDER
-from tatorte_classifier.api import get_models, get_random_text, get_text, get_texts
+from configuration import TEMPLATE_FOLDER, STATIC_FOLDER
 
-bp = Blueprint("frontend", __name__, template_folder=TEMPLATE_FOLDER, url_prefix="/")
+# from tatorte_classifier.api import get_models, get_random_text, get_text, get_texts
+from tatorte_classifier.database import get_all_texts, get_all_models, get_random_text, get_text
+
+bp = Blueprint(
+    "frontend",
+    __name__,
+    template_folder=TEMPLATE_FOLDER,
+    url_prefix="/",
+    static_folder=STATIC_FOLDER,
+)
 
 
 @bp.route("/", methods=["GET"])
@@ -29,7 +37,7 @@ def texts_frontend(page_number: int) -> str:
 
     return render_template(
         "texts.html",
-        texts=json.loads(get_texts((page_number - 1) * 100, page_number * 100)),
+        texts=list(get_all_texts()[(page_number - 1) * 100 : page_number * 100]),
         current_page=int(page_number),
     )
 
@@ -86,16 +94,12 @@ def change_data_with_id(text_id: str) -> str:
     Returns:
         html
     """
-    this_text = get_text(text_id)
-    if isinstance(this_text, str):
-        return "There is no text with that id"
-
-    this_text = json.loads(get_text(text_id))
+    text = get_text(text_id)
     return render_template(
         "change_data.html",
         default_id=text_id,
-        default_data=this_text["data"],
-        default_categories=this_text["categories"],
+        default_data=text["data"],
+        default_categories=text["categories"],
     )
 
 
@@ -110,15 +114,15 @@ def new_model_frontend() -> str:
     return render_template("new_model.html")
 
 
-@bp.route("/get_predictions", methods=["GET"])
-def get_predictions_frontend() -> str:
+@bp.route("/get_predictions/<model_id>", methods=["GET"])
+def get_predictions_frontend(model_id) -> str:
     """Frontend for viewing all trained models and their performances
 
     Returns:
         html
     """
 
-    return render_template("get_predictions.html", models=json.loads(get_models()))
+    return render_template("get_predictions.html", model_id=model_id)
 
 
 @bp.route("/models", methods=["GET"])
@@ -129,4 +133,4 @@ def models_frontend() -> str:
         html
     """
 
-    return render_template("models.html", models=json.loads(get_models()))
+    return render_template("models.html", models=list(get_all_models()))

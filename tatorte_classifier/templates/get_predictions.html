@@ -12,15 +12,8 @@
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
     <title>Add Data</title>
-    <style>
-        body {
-            padding: 2em;
-        }
-
-        #predictions_graph {
-            height: 30em;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/get_predictions.css') }}">
 </head>
 
 <body>
@@ -43,7 +36,7 @@
         }
         function get_predictions() {
             xhr = new XMLHttpRequest();
-            var url = "/api/get_prediction";
+            var url = "/api/models/{{ model_id }}/predict";
             xhr.open("POST", url, true);
             xhr.setRequestHeader("Content-type", "application/json");
             xhr.onreadystatechange = function () {
