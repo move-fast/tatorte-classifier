@@ -22,7 +22,7 @@
             return indexes;
         }
 
-        function delete_and_reload() {
+        function deleteAndReload() {
             const Http = new XMLHttpRequest();
             text_id = document.getElementById("id-text").value
             const url = '/api/text/' + text_id;
@@ -31,7 +31,7 @@
             window.location.href = "/texts/1"
         }
 
-        function submit_and_reload() {
+        function submitAndReload() {
             text_id = document.getElementById("id-text").value
             const url = '/api/texts/' + text_id;
             checkbox_1 = document.getElementById("checkbox-1").checked
@@ -51,7 +51,7 @@
             }
         }
 
-        function load_preview() {
+        function loadPreview() {
             if (document.getElementById("id-text").value.length === 24) {
                 document.location.href = "/change-data/" + document.getElementById("id-text").value
 
@@ -64,7 +64,7 @@
     <form action="">
         <textarea id="id-text" class="materialize-textarea" data-length="24">{{  default_id  }}</textarea>
         <input style="color: #eee" class="btn waves-effect waves-light" type="button" value="Preview"
-            onclick="load_preview()">
+            onclick="loadPreview()">
         <div id="preview" style="visibility: {{  default_vis }};">
             <hr>
             <div class="text-div">
@@ -106,10 +106,10 @@
             </label>
         </p>
         <input style="color: #eee" class="btn waves-effect waves-light" type="button" value="Submit"
-            onclick="submit_and_reload()">
+            onclick="submitAndReload()">
     </form>
     <br>
-    <button class="btn waves-effect waves-light red" onclick="delete_and_reload()">Delete</button>
+    <button class="btn waves-effect waves-light red" onclick="deleteAndReload()">Delete</button>
 </body>
 
 </html>

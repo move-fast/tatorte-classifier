@@ -24,7 +24,7 @@
         }
 
 
-        function delete_and_reload() {
+        function deleteAndReload() {
             const Http = new XMLHttpRequest();
             const url = '/api/text/{{  text_id  }}';
             Http.open("DELETE", url);
@@ -34,7 +34,7 @@
             }
             location.reload()
         }
-        function submit_and_reload() {
+        function submitAndReload() {
             const url = '/api/texts/{{ text_id }}';
             checkbox_1 = document.getElementById("checkbox-1").checked
             checkbox_2 = document.getElementById("checkbox-2").checked
@@ -90,11 +90,11 @@
                 </label>
             </p>
             <input style="color: #eee" class="btn waves-effect waves-light" type="button" value="Submit"
-                onclick="submit_and_reload()">
+                onclick="submitAndReload()">
         </div>
     </form>
     <br>
-    <button class="btn waves-effect waves-light red" onclick="delete_and_reload()">Delete</button>
+    <button class="btn waves-effect waves-light red" onclick="deleteAndReload()">Delete</button>
 </body>
 
 </html>

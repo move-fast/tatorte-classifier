@@ -34,7 +34,7 @@
                 number2str = JSON.parse(Http.responseText)
             }
         }
-        function get_predictions() {
+        function getPredictions() {
             xhr = new XMLHttpRequest();
             var url = "/api/models/{{ model_id }}/predict";
             xhr.open("POST", url, true);
@@ -72,7 +72,7 @@
     </script>
     <h1>Test Model</h1>
     <form action="">
-        <textarea onkeyup="get_predictions()" id="data-text" class="materialize-textarea"></textarea>
+        <textarea onkeyup="getPredictions()" id="data-text" class="materialize-textarea"></textarea>
     </form>
     <div id="predictions_graph"></div>
 </body>

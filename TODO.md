@@ -1,7 +1,4 @@
 - Seperate JS and HTML
-- camelCase JS
-- Look into calling pyFunctions via HTML
 - Rename Variables
-- Documentation
 - Linter
 - Build Tests
