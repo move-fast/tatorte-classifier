@@ -34,7 +34,6 @@ def texts_frontend(page_number: int) -> str:
     Returns:
         html
     """
-
     return render_template(
         "texts.html",
         texts=list(get_all_texts()[(page_number - 1) * 100 : page_number * 100]),
@@ -50,12 +49,9 @@ def data_checker() -> str:
         html
     """
 
-    this_text = json.loads(get_random_text())[0]
+    text = list(get_random_text())[0]
     return render_template(
-        "data-checker.html",
-        text_id=this_text["_id"]["$oid"],
-        data=this_text["data"],
-        categories=this_text["categories"],
+        "data-checker.html", text_id=text["_id"], data=text["data"], categories=text["categories"]
     )
 
 
@@ -114,7 +110,7 @@ def new_model_frontend() -> str:
     return render_template("new_model.html")
 
 
-@bp.route("/get_predictions/<model_id>", methods=["GET"])
+@bp.route("/predictions/<model_id>", methods=["GET"])
 def get_predictions_frontend(model_id) -> str:
     """Frontend for viewing all trained models and their performances
 

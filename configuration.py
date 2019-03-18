@@ -4,12 +4,20 @@ import logging
 import logging.config
 
 LOG_FILE: str = str(os.getenv("LOG_FILE"))
+ERROR_LOG_FILE: str = str(os.getenv("ERROR_LOG_FILE"))
 LOGGING_CONFIG = {
     "version": 1,
     "formatters": {
         "standard": {"format": "[%(asctime)s] [%(name)s] [%(levelname)s] - %(message)s"}
     },
     "handlers": {
+        "error-file": {
+            "class": "logging.FileHandler",
+            "level": "ERROR",
+            "filename": ERROR_LOG_FILE,
+            "mode": "w",
+            "formatter": "standard",
+        },
         "file": {
             "class": "logging.FileHandler",
             "level": "DEBUG",
@@ -17,9 +25,9 @@ LOGGING_CONFIG = {
             "mode": "w",
             "formatter": "standard",
         },
-        "console": {"class": "logging.StreamHandler", "level": "WARNING"},
+        "console": {"class": "logging.StreamHandler", "level": "DEBUG"},
     },
-    "loggers": {"": {"handlers": ["file", "console"], "level": "DEBUG"}},
+    "loggers": {"": {"handlers": ["error-file", "file", "console"], "level": "DEBUG"}},
 }
 
 logging.config.dictConfig(LOGGING_CONFIG)

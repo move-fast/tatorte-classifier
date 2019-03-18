@@ -1,6 +1,8 @@
+import time
+
 import pymongo
 from bson.objectid import ObjectId
-import datetime
+
 from configuration import MONGODB_URI
 
 client = pymongo.MongoClient(MONGODB_URI)
@@ -24,13 +26,15 @@ def create_model(model_url, performance_data, metadata, error_message):
             "performance_data": performance_data,
             "metadata": metadata,
             "error_message": error_message,
-            "time_created": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "time_created": time.time(),
         }
     )
 
 
-def get_all_texts(projection={}):
-    return texts.find({}, projection).sort("time_modified", pymongo.DESCENDING)
+def get_all_texts(projection=None):
+    if projection:
+        return texts.find({}, projection).sort("time_modified", pymongo.DESCENDING)
+    return texts.find().sort("time_modified", pymongo.DESCENDING)
 
 
 def get_text(text_id):
@@ -42,8 +46,8 @@ def create_text(data, categories):
         {
             "data": data,
             "categories": categories,
-            "time_created": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "time_modified": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "time_created": time.time(),
+            "time_modified": time.time(),
         }
     )
 
@@ -51,12 +55,7 @@ def create_text(data, categories):
 def modify_text(text_id, categories):
     texts.update_one(
         {"_id": ObjectId(text_id)},
-        {
-            "$set": {
-                "categories": categories,
-                "time_modified": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            }
-        },
+        {"$set": {"categories": categories, "time_modified": time.time()}},
         upsert=False,
     )
 

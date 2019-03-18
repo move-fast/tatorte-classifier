@@ -35,7 +35,7 @@
             location.reload()
         }
         function submit_and_reload() {
-            const url = '/api/change_categories';
+            const url = '/api/texts/{{ text_id }}';
             checkbox_1 = document.getElementById("checkbox-1").checked
             checkbox_2 = document.getElementById("checkbox-2").checked
             checkbox_3 = document.getElementById("checkbox-3").checked
@@ -44,9 +44,9 @@
             if (checkbox_1 || checkbox_2 || checkbox_3 || checkbox_4 || checkbox_5) {
                 categories = getAllIndexes([checkbox_1, checkbox_2, checkbox_3, checkbox_4, checkbox_5], true)
                 const Http = new XMLHttpRequest();
-                Http.open("POST", url)
+                Http.open("PATCH", url)
                 Http.setRequestHeader("Content-type", "application/json")
-                Http.send('{"id": "{{  text_id  }}", "categories": [' + categories + ']}')
+                Http.send('{"categories": [' + categories + ']}')
                 location.reload()
             } else {
                 alert("At least one checkbox has to be checked")

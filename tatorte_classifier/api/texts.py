@@ -92,10 +92,7 @@ class Texts(Resource):
             ]
         """
         try:
-            if start and end:
-                return dumps(get_all_texts()[start:end])
-            else:
-                return dumps(get_all_texts())
+            return dumps(get_all_texts())
         except Exception as err:
             logger.error(str(err))
             return BadRequest(str(err))
@@ -118,3 +115,9 @@ class Texts(Resource):
         except Exception as err:
             logger.error(str(err))
             return BadRequest(str(err))
+
+
+class TextsStartEnd(Resource):
+    def get(self, start, end):
+        return dumps(get_all_texts()[start:end])
+

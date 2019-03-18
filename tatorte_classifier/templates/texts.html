@@ -15,11 +15,11 @@
 <body>
     <h1>Texts</h1>
     {%  for i in texts  %}
-    <a href="/change-data/{{ i['_id']['$oid'] }}">
+    <a href="/change-data/{{ i['_id'] }}">
         <div class="text-div">
             <div style="float:left; width:80%">
                 <p>{{  i["data"]  }}</p>
-                <p style="font-size: 11px;">{{  i["_id"]["$oid"]  }}</p>
+                <p style="font-size: 11px;">{{  i["_id"] }}</p>
             </div>
             <p style="float: right;">{{  i["categories"]  }}</p>
 

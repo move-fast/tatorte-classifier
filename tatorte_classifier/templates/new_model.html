@@ -38,7 +38,7 @@
             console.log(params)
 
             const Http = new XMLHttpRequest();
-            Http.open("POST", "/api/train_model");
+            Http.open("POST", "/api/models");
             Http.setRequestHeader("Content-type", "application/json");
             Http.send(JSON.stringify(params));
         }
@@ -47,7 +47,7 @@
             document.getElementById("clf_options").innerHTML = ""
             const Http = new XMLHttpRequest();
             model_name = document.getElementById("clf").value
-            const url = '/api/get_model_options/' + model_name;
+            const url = '/api/model_options/' + model_name;
             Http.open("GET", url);
             Http.send()
             Http.onreadystatechange = function () {

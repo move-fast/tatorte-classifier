@@ -4,5 +4,4 @@
 - Rename Variables
 - Documentation
 - Linter
-- Check Logging
 - Build Tests
