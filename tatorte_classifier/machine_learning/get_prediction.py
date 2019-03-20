@@ -40,7 +40,7 @@ def load_model(model_id) -> Model:
     if os.path.isfile(f"{MODEL_DIR}/{model_id}"):
         model = dill.load(open(f"{MODEL_DIR}/{model_id}", "rb"))
     else:
-        logger.warning(f"File {MODEL_DIR}/{model_id} does not exist")
+        logger.warning("File %s/%s does not exist", MODEL_DIR, model_id)
         model = Model("sgd", {}, {})  # random model if no model exists
     return model
 

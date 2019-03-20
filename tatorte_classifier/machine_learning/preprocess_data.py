@@ -3,7 +3,7 @@ import re
 
 class DataPreprocessor:
     """Class to preprocess the description
-    
+ 
     Returns:
         string -- the preprocessed text
     """
@@ -24,12 +24,12 @@ class DataPreprocessor:
 
     def __call__(self, x: str) -> str:
         """This combines all the small preproccessing function together
-        
+ 
         Arguments:
             x {str} -- The raw descriptions
             y {int} -- The category - only needs to be provided when train==True
             train {bool} -- Whether training preprocesing should be applied
-        
+ 
         Returns:
             str -- The preprocessed descriptions
         """

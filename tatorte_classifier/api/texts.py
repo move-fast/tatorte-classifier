@@ -1,11 +1,8 @@
-import datetime
 import logging
 
 from flask import jsonify, request
 from flask_restful import Resource
 from bson.json_util import dumps
-from pymongo import DESCENDING
-from bson.objectid import ObjectId
 
 from werkzeug.exceptions import BadRequest
 
@@ -76,7 +73,7 @@ class Text(Resource):
 
 
 class Texts(Resource):
-    def get(self, start=None, end=None):
+    def get(self):
         """
         Returns:
             [
@@ -119,5 +116,24 @@ class Texts(Resource):
 
 class TextsStartEnd(Resource):
     def get(self, start, end):
-        return dumps(get_all_texts()[start:end])
+        """Get all texts sorted by time modified from starting index to ending index.
+ 
+        Arguments:
+            start {int} -- The starting index
+            end {int} -- The ending index
+ 
+        Returns:
+            [
+                {
+                    "_id": {
+                        "$oid": "5c6c1b2573cda500b254404c"
+                    },
+                    "data": "This is a test. Number 2",
+                    "time_created": "2019-02-19 15:05:09",
+                    "time_modified": "2019-02-19 15:18:53",
+                    "categories": [4, 2]
+                }, ...
+            ]
+        """
 
+        return dumps(get_all_texts()[start:end])

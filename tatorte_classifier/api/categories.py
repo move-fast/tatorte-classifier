@@ -3,7 +3,7 @@ from flask import jsonify
 
 
 class Categories(Resource):
-    def get(self):
+    def get(self) -> str:
         """Returns the key for translating class_numbers to text
 
         Returns:

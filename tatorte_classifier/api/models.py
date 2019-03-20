@@ -1,43 +1,37 @@
 import logging
-import os
 import uuid
 from threading import Thread
 
-from pymongo import DESCENDING
+import numpy as np
 from bson.json_util import dumps
 from flask import jsonify, request, send_file
 from flask_restful import Resource
 from werkzeug.exceptions import BadRequest
-import numpy as np
-import datetime
 
 from configuration import MODEL_DIR
+from tatorte_classifier.database import create_model, get_all_models, get_all_texts
 from tatorte_classifier.machine_learning.get_prediction import get_predictions, load_model
 from tatorte_classifier.machine_learning.preprocess_data import DataPreprocessor
 from tatorte_classifier.machine_learning.train_model import save_model, train_model
-from tatorte_classifier.database import get_all_models, get_model, create_model, get_all_texts
 
 logger = logging.getLogger(__name__)
 
 
 class Model(Resource):
-    def get(self, model_id):
+    def get(self, model_filename: str):
         """returns model .sav file
 
         Returns:
-            file: MODEL_DIR/model_id
+            file: MODEL_DIR/model_filename
         """
 
         try:
             return send_file(
-                "{}/{}.sav".format(MODEL_DIR, model_id), attachment_filename=model_id + ".sav"
+                "{}/{}".format(MODEL_DIR, model_filename), attachment_filename=model_filename
             )
         except Exception as err:
             logger.error(str(err))
             return BadRequest(str(err))
-
-    def delete(self, model_id):  # TODO: still implement
-        pass
 
 
 class Models(Resource):
@@ -106,20 +100,18 @@ class Models(Resource):
 
         def train(x: np.ndarray, y: np.ndarray) -> None:
             try:
-                this_model, train_acc, test_acc, _ = train_model(
-                    x, y, **request_json
-                )  # train model
+                model, train_acc, test_acc, _ = train_model(x, y, **request_json)  # train model
                 # save model
-                this_id = uuid.uuid4().hex[:8]
-                save_model(this_model, str(this_id))
+                model_id = uuid.uuid4().hex[:8]
+                save_model(model, str(model_id))
                 # add model to database
                 create_model(
-                    "model-{}.sav".format(this_id),
+                    "model-{}.sav".format(model_id),
                     {"train_acc": train_acc, "test_acc": test_acc},
                     request_json,
                     "",
                 )
-                logger.info(f"Trained new model with id: {this_id}")
+                logger.info("Trained new model with id: %s", model_id)
             except Exception as err:
                 logger.error(str(err))
                 # insert model with
@@ -178,7 +170,7 @@ class ModelPredict(Resource):
 
 
 class ModelOptions(Resource):
-    def get(self, model_name):
+    def get(self, model_name: str):
         """Get list of params, which can be passed to different classifiers
 
         Arguments:

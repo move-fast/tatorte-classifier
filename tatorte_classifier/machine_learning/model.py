@@ -8,7 +8,7 @@ from nltk.stem import SnowballStemmer
 class Model:
     def __init__(self, clf: str, clf_params: dict, vect_params: dict, scale_params: dict = {}):
         """[summary]
-        
+ 
         Arguments:
             clf {str} -- The Classifier. Options are sgd, nn, svm
             clf_params {dict} -- The params for the classifier
