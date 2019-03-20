@@ -1,4 +1,1 @@
-- Seperate JS and HTML
-- Rename Variables
 - Linter
-- Build Tests

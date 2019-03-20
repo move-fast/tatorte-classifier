@@ -196,7 +196,7 @@ class ModelOptions(Resource):
         if model_name == "sgd":
             return jsonify(
                 {
-                    "loss": ["log", "modified_huber", "squared_hinge", "perceptron"],
+                    "loss": ["log", "modified_huber", "perceptron"],
                     "penalty": ["l2", "l1", "elastic_net"],
                     "alpha": 0.0001,
                     "max_iter": 100,

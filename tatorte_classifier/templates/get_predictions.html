@@ -14,63 +14,12 @@
     <title>Add Data</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/get_predictions.css') }}">
+    <script src="{{ url_for('static', filename='js/predictions_plot.js') }}"></script>
 </head>
 
 <body>
-    <script>
-        var layout = {
-            title: 'Categories:',
-            font: { size: 18 }
-        };
-
-
-        var number2str;
-        Http = new XMLHttpRequest();
-        var url = "/api/categories";
-        Http.open("GET", url);
-        Http.send()
-        Http.onreadystatechange = function () {
-            if (Http.readyState == 4 && Http.status == 200) {
-                number2str = JSON.parse(Http.responseText)
-            }
-        }
-        function getPredictions() {
-            xhr = new XMLHttpRequest();
-            var url = "/api/models/{{ model_id }}/predict";
-            xhr.open("POST", url, true);
-            xhr.setRequestHeader("Content-type", "application/json");
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState == 4 && xhr.status == 200) {
-                    console.log(number2str)
-                    console.log(xhr.responseText)
-                    x = [];
-                    y = [];
-                    predictions = JSON.parse(xhr.responseText)["predictions"]
-                    for (i of predictions) {
-                        x.push(number2str[i["category"]]["name"])
-                        y.push(i["probability"])
-                    }
-                    data = [{
-                        type: "bar",
-                        x: x,
-                        y: y,
-                        marker: {
-                            color: "#2BBBAD",
-                            line: {
-                                width: 0.5
-                            }
-                        }
-                    }]
-                    Plotly.newPlot('predictions_graph', data, layout, { responsive: true });
-                }
-            }
-            var data = JSON.stringify({ "data": document.getElementById("data-text").value, "parameters": { "max_categories": 5 } });
-            xhr.send(data);
-        }
-
-
-    </script>
     <h1>Test Model</h1>
+    <p>Testing Model with Id: <span id="model-id">{{ model_id }}</span></p>
     <form action="">
         <textarea onkeyup="getPredictions()" id="data-text" class="materialize-textarea"></textarea>
     </form>

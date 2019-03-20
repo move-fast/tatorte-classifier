@@ -11,51 +11,14 @@
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/data-checker.css') }}">
+    <script src="{{ url_for('static', filename='js/texts.js') }}"></script>
 </head>
 
 <body>
-    <script>
-        function getAllIndexes(arr, val) {
-            var indexes = [], i = -1;
-            while ((i = arr.indexOf(val, i + 1)) != -1) {
-                indexes.push(i);
-            }
-            return indexes;
-        }
-
-
-        function deleteAndReload() {
-            const Http = new XMLHttpRequest();
-            const url = '/api/text/{{  text_id  }}';
-            Http.open("DELETE", url);
-            Http.send();
-            Http.onreadystatechange = (e) => {
-                console.log(Http.responseText)
-            }
-            location.reload()
-        }
-        function submitAndReload() {
-            const url = '/api/texts/{{ text_id }}';
-            checkbox_1 = document.getElementById("checkbox-1").checked
-            checkbox_2 = document.getElementById("checkbox-2").checked
-            checkbox_3 = document.getElementById("checkbox-3").checked
-            checkbox_4 = document.getElementById("checkbox-4").checked
-            checkbox_5 = document.getElementById("checkbox-5").checked
-            if (checkbox_1 || checkbox_2 || checkbox_3 || checkbox_4 || checkbox_5) {
-                categories = getAllIndexes([checkbox_1, checkbox_2, checkbox_3, checkbox_4, checkbox_5], true)
-                const Http = new XMLHttpRequest();
-                Http.open("PATCH", url)
-                Http.setRequestHeader("Content-type", "application/json")
-                Http.send('{"categories": [' + categories + ']}')
-                location.reload()
-            } else {
-                alert("At least one checkbox has to be checked")
-            }
-        }
-    </script>
     <h1>Data Checker</h1>
     <p style="text-align: center; font-size: 25px;">{{  data  }}</p>
     <p>Current Categories: {{  categories }}</p>
+    <p id="text-id">{{ text_id }}</p>
 
     <form>
         <div>

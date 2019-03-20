@@ -10,59 +10,13 @@
     <title>Change Data</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/change_data.css') }}">
+    <script src="{{ url_for('static', filename='js/texts.js') }}"></script>
 </head>
 
 <body>
-    <script>
-        function getAllIndexes(arr, val) {
-            var indexes = [], i = -1;
-            while ((i = arr.indexOf(val, i + 1)) != -1) {
-                indexes.push(i);
-            }
-            return indexes;
-        }
-
-        function deleteAndReload() {
-            const Http = new XMLHttpRequest();
-            text_id = document.getElementById("id-text").value
-            const url = '/api/text/' + text_id;
-            Http.open("DELETE", url);
-            Http.send();
-            window.location.href = "/texts/1"
-        }
-
-        function submitAndReload() {
-            text_id = document.getElementById("id-text").value
-            const url = '/api/texts/' + text_id;
-            checkbox_1 = document.getElementById("checkbox-1").checked
-            checkbox_2 = document.getElementById("checkbox-2").checked
-            checkbox_3 = document.getElementById("checkbox-3").checked
-            checkbox_4 = document.getElementById("checkbox-4").checked
-            checkbox_5 = document.getElementById("checkbox-5").checked
-            if (checkbox_1 || checkbox_2 || checkbox_3 || checkbox_4 || checkbox_5) {
-                categories = getAllIndexes([checkbox_1, checkbox_2, checkbox_3, checkbox_4, checkbox_5], true)
-                const Http = new XMLHttpRequest();
-                Http.open("PATCH", url)
-                Http.setRequestHeader("Content-type", "application/json")
-                Http.send('{"id": "' + text_id + '", "categories": [' + categories + ']}')
-                window.location.href = "/texts/1"
-            } else {
-                alert("At least on checkbox has to be checked")
-            }
-        }
-
-        function loadPreview() {
-            if (document.getElementById("id-text").value.length === 24) {
-                document.location.href = "/change-data/" + document.getElementById("id-text").value
-
-            } else {
-                alert("The given Id is not valid")
-            }
-        }
-    </script>
     <h1>Change Data</h1>
     <form action="">
-        <textarea id="id-text" class="materialize-textarea" data-length="24">{{  default_id  }}</textarea>
+        <textarea id="text-id" class="materialize-textarea" data-length="24">{{  default_id  }}</textarea>
         <input style="color: #eee" class="btn waves-effect waves-light" type="button" value="Preview"
             onclick="loadPreview()">
         <div id="preview" style="visibility: {{  default_vis }};">
