@@ -8,7 +8,6 @@
         - POST - Create new Model - Input: Metada
     - models/<model_id> [GET, DELETE]
         - GET - Download a saved file from the model
-        - DELETE - Delete the model from the database - **Not implemented yet**
     - texts/ [GET, POST]
         - GET - Get an ordered list of all the texts
         - POST - Create a new text - Input: data, categories
