@@ -4,7 +4,6 @@ from flask import Blueprint, render_template
 
 from configuration import TEMPLATE_FOLDER, STATIC_FOLDER
 
-# from tatorte_classifier.api import get_models, get_random_text, get_text, get_texts
 from tatorte_classifier.database import get_all_texts, get_all_models, get_random_text, get_text
 
 bp = Blueprint(

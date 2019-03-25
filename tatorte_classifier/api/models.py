@@ -17,7 +17,7 @@ from tatorte_classifier.machine_learning.train_model import save_model, train_mo
 logger = logging.getLogger(__name__)
 
 
-class Model(Resource):
+class ClassifierModel(Resource):
     def get(self, model_filename: str):
         """returns model .sav file
 
@@ -34,7 +34,7 @@ class Model(Resource):
             return BadRequest(str(err))
 
 
-class Models(Resource):
+class ClassifierModelList(Resource):
     def get(self):
         """Get a list of metadata, performance-data for all the models
 
@@ -129,7 +129,7 @@ class Models(Resource):
             return BadRequest(str(err))
 
 
-class ModelPredict(Resource):
+class ClassifierModelPredict(Resource):
     def __init__(self):
         self.preprocessor = DataPreprocessor()
 
@@ -169,7 +169,7 @@ class ModelPredict(Resource):
             return BadRequest(str(err))
 
 
-class ModelOptions(Resource):
+class ClassifierModelOptions(Resource):
     def get(self, model_name: str):
         """Get list of params, which can be passed to different classifiers
 

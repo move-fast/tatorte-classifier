@@ -1,5 +1,6 @@
 import os
 from typing import Callable, Tuple
+import logging
 
 import dill
 import numpy as np
@@ -9,6 +10,8 @@ from sklearn.model_selection import train_test_split
 from configuration import MODEL_DIR
 from tatorte_classifier.machine_learning.model import Model
 from tatorte_classifier.machine_learning.preprocess_data import DataPreprocessor
+
+logger = logging.getLogger(__name__)
 
 
 def _change_category(
@@ -129,24 +132,19 @@ def save_model(model, model_id):
 
 
 def train_model(x, y, clf, clf_params, vect_params, test_size=0.3, values_per_category=900):
-    # print("Loading Data...", end=" ")
-    # print("Finished!")
-    # print("Preprocessing Data...")
-    # print("  Cleaning Data")
+    logger.info("Preprocessing Data...")
+    logger.info("  Cleaning Data")
     x, y = clean_data(x, y)
-    # print("  Balancing Data")
+    logger.info("  Balancing Data")
     x, y = balance_data(x, y, values_per_category)
-    # print("  Splitting Data")
+    logger.info("  Splitting Data")
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=test_size)
-    # print("Finished!")
+    logger.info("Finished Preprocessing!")
     model = create_model(clf, clf_params, vect_params)
-    # print("Created Model")
-    # print("Training Model...", end=" ")
+    logger.info("Created Model")
+    logger.info("Training Model...")
     model = _train_model(x_train, y_train, model)
-    # print("Finished!")
+    logger.info("Finished training!")
     train_acc, test_acc, conf_matrix = evaluate_model(x_train, x_test, y_train, y_test, model)
-    # id = save_model(model)
-    print("Finished Training")
-    # print("Saved Model")
     return model, train_acc, test_acc, conf_matrix
 

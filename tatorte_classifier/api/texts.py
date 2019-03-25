@@ -72,9 +72,12 @@ class Text(Resource):
             return BadRequest(str(err))
 
 
-class Texts(Resource):
+class TextList(Resource):
     def get(self):
         """
+        Query String Params:
+            start {int} - starting index
+            end {int} - ending index 
         Returns:
             [
                 {
@@ -89,7 +92,11 @@ class Texts(Resource):
             ]
         """
         try:
-            return dumps(get_all_texts())
+            return dumps(
+                get_all_texts()[
+                    request.args.get("start", type=int) : request.args.get("end", type=int)
+                ]
+            )
         except Exception as err:
             logger.error(str(err))
             return BadRequest(str(err))
@@ -112,28 +119,3 @@ class Texts(Resource):
         except Exception as err:
             logger.error(str(err))
             return BadRequest(str(err))
-
-
-class TextsStartEnd(Resource):
-    def get(self, start, end):
-        """Get all texts sorted by time modified from starting index to ending index.
- 
-        Arguments:
-            start {int} -- The starting index
-            end {int} -- The ending index
- 
-        Returns:
-            [
-                {
-                    "_id": {
-                        "$oid": "5c6c1b2573cda500b254404c"
-                    },
-                    "data": "This is a test. Number 2",
-                    "time_created": "2019-02-19 15:05:09",
-                    "time_modified": "2019-02-19 15:18:53",
-                    "categories": [4, 2]
-                }, ...
-            ]
-        """
-
-        return dumps(get_all_texts()[start:end])
