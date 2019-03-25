@@ -66,7 +66,7 @@ function loadPreview() {
 }
 
 function createAndReload() {
-    const url = '/api/texts';
+    const url = '/api/texts/';
     data = document.getElementById("data-text").value
     categories = getAllCategories()
     if (categories) {

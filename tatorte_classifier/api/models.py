@@ -133,7 +133,7 @@ class ClassifierModelPredict(Resource):
     def __init__(self):
         self.preprocessor = DataPreprocessor()
 
-    def post(self, model_id):
+    def post(self, model_name):
         """Get predictions and probabilitys
         Input:
             {
@@ -161,7 +161,7 @@ class ClassifierModelPredict(Resource):
             max_categories = request_json["parameters"]["max_categories"]
             desc = request_json["data"]
             desc = self.preprocessor(desc)
-            preds = np.asarray(get_predictions([desc], load_model(model_id), max_categories)).T
+            preds = np.asarray(get_predictions([desc], load_model(model_name), max_categories)).T
             preds = [{"category": pred_idx, "probability": pred} for pred_idx, pred in preds]
             return jsonify({"predictions": preds})
         except Exception as err:

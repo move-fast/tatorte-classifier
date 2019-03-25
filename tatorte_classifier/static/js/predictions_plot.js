@@ -7,7 +7,7 @@ var layout = {
 
 var number2str;
 Http = new XMLHttpRequest();
-var url = "/api/categories";
+var url = "/api/categories/";
 Http.open("GET", url);
 Http.send()
 Http.onreadystatechange = function () {
@@ -17,7 +17,7 @@ Http.onreadystatechange = function () {
 }
 function getPredictions() {
     xhr = new XMLHttpRequest();
-    var url = "/api/models/" + document.getElementById("model-id").innerHTML + "/predict";
+    var url = "/api/models/" + document.getElementById("model-id").innerHTML + "/predict/";
     xhr.open("POST", url, true);
     xhr.setRequestHeader("Content-type", "application/json");
     xhr.onreadystatechange = function () {

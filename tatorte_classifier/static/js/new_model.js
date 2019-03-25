@@ -22,7 +22,7 @@ function trainModel() {
     console.log(params)
 
     const Http = new XMLHttpRequest();
-    Http.open("POST", "/api/models");
+    Http.open("POST", "/api/models/");
     Http.setRequestHeader("Content-type", "application/json");
     Http.send(JSON.stringify(params));
 }
