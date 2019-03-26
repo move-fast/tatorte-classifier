@@ -8,28 +8,15 @@
     <!-- Compiled and minified JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <title>Models</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/list.css') }}">
 </head>
 
 <body>
     <h1>Models</h1>
-    <style>
-        body {
-            padding: 2em
-        }
-
-        .text-div {
-            margin: 1em 2em 1em 2em;
-            display: inline-block;
-            width: calc(100% - 4em);
-        }
-
-        a {
-            color: inherit;
-        }
-    </style>
     {%  for i in models %}
     <div style="margin: 1px 1px 1px 1px; display: inline-block;">
-        <a style="width: 90%; float: left;" href="/api/model/{{ i['model_url'] }}">
+        <a style="width: 90%; float: left;" href="/api/models/{{ i['model_url'] }}">
             <div class="text-div">
                 <div style="float:left; width:30%">
                     <p>Train acc: {{  i["performance_data"]["train_acc"]  }}</p>
@@ -43,7 +30,7 @@
             </div>
         </a>
         <a style="float: right;" class="btn-floating btn-large waves-effect waves-light blue"
-            href="/api/change_model/{{ i['model_url'] }}">Use</a>
+            href="/predictions/{{ i['model_url'] }}">Test</a>
     </div>
     <hr>
     {%  endfor  %}

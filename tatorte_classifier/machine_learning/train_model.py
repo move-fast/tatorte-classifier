@@ -1,7 +1,6 @@
 import os
-import time
-import uuid
 from typing import Callable, Tuple
+import logging
 
 import dill
 import numpy as np
@@ -9,8 +8,10 @@ from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.model_selection import train_test_split
 
 from configuration import MODEL_DIR
-from model import Model
-from preprocess_data import DataPreprocessor
+from tatorte_classifier.machine_learning.model import Model
+from tatorte_classifier.machine_learning.preprocess_data import DataPreprocessor
+
+logger = logging.getLogger(__name__)
 
 
 def _change_category(
@@ -23,9 +24,23 @@ def _change_category(
 def _drop_all_containing_keyword(
     x: np.ndarray, y: np.ndarray, keyword: str, category: int = None
 ) -> Tuple[np.ndarray, np.ndarray]:
+    """Drop all elements where a keyword in an element text
+
+    Arguments:
+        x {np.ndarray} -- The texts
+        y {np.ndarray} -- The categories
+        keyword {str} -- The keyword to filter the elements
+
+    Keyword Arguments:
+        category {int} -- If given, it is only filtered from the category given (default: {None})
+
+    Returns:
+        Tuple[np.ndarray, np.ndarray] -- The texts and categories
+    """
+
     str_contain = np.vectorize(lambda x: keyword in x.lower())
     idxs = np.where(str_contain(x))
-    if category != None:
+    if category is not None:
         idxs = np.intersect1d(idxs, np.where(y == category))
     y = np.delete(y, idxs)
     x = np.delete(x, idxs)
@@ -33,6 +48,16 @@ def _drop_all_containing_keyword(
 
 
 def clean_data(x: np.ndarray, y: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    """Apply Data cleaning
+
+    Arguments:
+        x {np.ndarray} -- The texts
+        y {np.ndarray} -- The categories
+
+    Returns:
+        Tuple[np.ndarray, np.ndarray] -- The texts and categories
+    """
+
     # Key:
     #   1 - Feuer
     #   2 - Mord
@@ -59,6 +84,17 @@ def clean_data(x: np.ndarray, y: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
 
 
 def balance_data(x: np.ndarray, y: np.ndarray, n_per_class: int) -> Tuple[np.ndarray, np.ndarray]:
+    """A function for balancing the data. Given n_per_class the number of elements in each class is reduced to n_elements_per_class
+
+    Arguments:
+        x {np.ndarray} -- The texts
+        y {np.ndarray} -- The categories
+        n_per_class {int} -- The number of elements for each class
+
+    Returns:
+        Tuple[np.ndarray, np.ndarray] -- Texts and Categories
+    """
+
     for i in np.unique(y):
         idxs = np.where(y == i)[0]
         np.random.shuffle(idxs)
@@ -68,20 +104,12 @@ def balance_data(x: np.ndarray, y: np.ndarray, n_per_class: int) -> Tuple[np.nda
     return x, y
 
 
-def create_model(clf, clf_params, vect_params) -> Model:
+def create_model(clf: str, clf_params: dict, vect_params: dict) -> Model:
     model = Model(clf, clf_params, vect_params)
     return model
 
 
-def _print_top10_features(vectorizer, clf, class_labels):
-    """Prints features with the highest coefficient values, per class"""
-    feature_names = vectorizer.get_feature_names()
-    for i, class_label in enumerate(class_labels):
-        top10 = np.argsort(clf.coef_[i])[-10:]
-        print("%s: %s" % (class_label, " ".join(feature_names[j] for j in top10)))
-
-
-def train_model(x_train: np.ndarray, y_train: np.ndarray, model: Model) -> Model:
+def _train_model(x_train: np.ndarray, y_train: np.ndarray, model: Model) -> Model:
     model.pipeline = model.pipeline.fit(x_train, y_train)
     return model
 
@@ -103,36 +131,20 @@ def save_model(model, model_id):
     # return id
 
 
-def main(x, y, clf, clf_params, vect_params, test_size=0.3, values_per_category=900):
-    # print("Loading Data...", end=" ")
-    # print("Finished!")
-    # print("Preprocessing Data...")
-    # print("  Cleaning Data")
+def train_model(x, y, clf, clf_params, vect_params, test_size=0.3, values_per_category=900):
+    logger.info("Preprocessing Data...")
+    logger.info("  Cleaning Data")
     x, y = clean_data(x, y)
-    # print("  Balancing Data")
+    logger.info("  Balancing Data")
     x, y = balance_data(x, y, values_per_category)
-    # print("  Splitting Data")
+    logger.info("  Splitting Data")
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=test_size)
-    # print("Finished!")
+    logger.info("Finished Preprocessing!")
     model = create_model(clf, clf_params, vect_params)
-    # print("Created Model")
-    # print("Training Model...", end=" ")
-    model = train_model(x_train, y_train, model)
-    # print("Finished!")
+    logger.info("Created Model")
+    logger.info("Training Model...")
+    model = _train_model(x_train, y_train, model)
+    logger.info("Finished training!")
     train_acc, test_acc, conf_matrix = evaluate_model(x_train, x_test, y_train, y_test, model)
-    # id = save_model(model)
-    print("Finished Training")
-    # print("Saved Model")
     return model, train_acc, test_acc, conf_matrix
 
-
-if __name__ == "__main__":
-    print(
-        main(
-            np.load("./data/data_x.npy"),
-            np.load("./data/data_y.npy"),
-            "sgd",
-            {"alpha": 1e-6, "max_iter": 100, "loss": "log", "penalty": "l2"},
-            {"ngram_range": (1, 4)},
-        )
-    )

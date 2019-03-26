@@ -1,10 +1,10 @@
 FROM python:3.6
 
 
-COPY . /
+COPY . /app
 
 #### Installs ####
-RUN pip install -r /requirements.txt
+RUN pip install -r /app/requirements.txt
 RUN python -c "import nltk; nltk.download('stopwords')"
 
-CMD [ "python", "/app/app.py" ]
+CMD [ "python", "/app/run.py" ]

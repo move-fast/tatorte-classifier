@@ -15,13 +15,13 @@ Versions:
 
 """
 import os
+import logging
 
 import dill
-import logging
 import numpy as np
 
-from configuration import CURRENT_MODEL_PATH, MIN_DESC_LEN, MIN_PREDICTING_PROBA
-from model import Model
+from configuration import MODEL_DIR, MIN_DESC_LEN, MIN_PREDICTING_PROBA
+from tatorte_classifier.machine_learning.model import Model
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 # --------------------------------
 # loading the model
 # --------------------------------
-def load_model() -> Model:
+def load_model(model_id) -> Model:
     """Loads the model
 
     Returns:
@@ -37,10 +37,11 @@ def load_model() -> Model:
     """
 
     model = None
-    if os.path.isfile(CURRENT_MODEL_PATH):
-        model = dill.load(open(CURRENT_MODEL_PATH, "rb"))
+    if os.path.isfile(f"{MODEL_DIR}/{model_id}"):
+        model = dill.load(open(f"{MODEL_DIR}/{model_id}", "rb"))
     else:
-        logger.error(f'File {CURRENT_MODEL_PATH} does not exist')
+        logger.warning("File %s/%s does not exist", MODEL_DIR, model_id)
+        model = Model("sgd", {}, {})  # random model if no model exists
     return model
 
 
@@ -83,7 +84,7 @@ def _predict_classes(desc: np.ndarray, model: Model, n_preds: int) -> np.ndarray
 # ----------------------
 
 
-def get_predictions(desc: np.ndarray, model, n_classes: int) -> np.ndarray:
+def get_predictions(desc: np.ndarray, model: Model, n_classes: int) -> np.ndarray:
     """Get the predictions
 
     Arguments:

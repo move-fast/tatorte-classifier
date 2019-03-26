@@ -7,45 +7,12 @@
 
     <!-- Compiled and minified JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/texts.js') }}"></script>
     <title>Add Data</title>
-    <style>
-        body {
-            padding: 2em;
-        }
-    </style>
 </head>
 
 <body>
-    <script>
-        function getAllIndexes(arr, val) {
-            var indexes = [], i = -1;
-            while ((i = arr.indexOf(val, i + 1)) != -1) {
-                indexes.push(i);
-            }
-            return indexes;
-        }
-
-        function submit_and_reload() {
-            const url = '/api/create_text';
-            checkbox_1 = document.getElementById("checkbox-1").checked
-            checkbox_2 = document.getElementById("checkbox-2").checked
-            checkbox_3 = document.getElementById("checkbox-3").checked
-            checkbox_4 = document.getElementById("checkbox-4").checked
-            checkbox_5 = document.getElementById("checkbox-5").checked
-            data = document.getElementById("data-text").value
-            if (checkbox_1 || checkbox_2 || checkbox_3 || checkbox_4 || checkbox_5) {
-                categories = getAllIndexes([checkbox_1, checkbox_2, checkbox_3, checkbox_4, checkbox_5], true)
-                const Http = new XMLHttpRequest();
-                Http.open("POST", url)
-                Http.setRequestHeader("Content-type", "application/json")
-                Http.send('{"data": "' + data + '", "categories": [' + categories + ']}')
-                location.reload()
-            } else {
-                alert("At least on checkbox has to be checked")
-            }
-        }
-
-    </script>
     <h1>Add Data</h1>
     <form action="">
         <textarea id="data-text" class="materialize-textarea"></textarea>
@@ -80,7 +47,7 @@
             </label>
         </p>
         <input style="color: #eee" class="btn waves-effect waves-light" type="button" value="Submit"
-            onclick="submit_and_reload()">
+            onclick="createAndReload()">
     </form>
 </body>
 
